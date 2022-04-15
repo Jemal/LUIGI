@@ -2,7 +2,7 @@ dependencies = {
 	base = "./deps",
 
 	load = function()
-		dir = path.join(dependencies.base, "premake/scripts/*.lua")
+		dir = path.join(dependencies.base, "premake/*.lua")
 		deps = os.matchfiles(dir)
 
 		for i, dep in pairs(deps) do
