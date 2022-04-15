@@ -1,13 +1,15 @@
 # LUIGI
-LUIGI is a tool for developers/modders to help design your UI with ease. It is current a WIP and isn't designed for a specific CoD.
+LUIGI is a tool for developers/modders to help design your UI with ease. It is currently a WIP and isn't designed for a specific CoD.
 
 ## Requirements
 - [Premake](https://premake.github.io/download) in PATH 
-- Visual Studio 2022
+- Visual Studio 2019/2022
 
 ## Usage
-1. Copy the contents of the `assets` directory into your folder of choice
-2. Run the `uie_setup.bat`. The project will be built then copied to %UIE_PATH%
+1. Clone the repo
+2. Copy the contents of the `assets` directory into your directory of choice
+3. Run `uie_setup.bat`. The project will be built then copied to %UIE_PATH%
+4. Run the `generate-vs*` of your choice.
 
 ## Credits
 - [X Labs](https://github.com/XLabsProject)
