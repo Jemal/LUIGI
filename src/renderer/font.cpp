@@ -11,6 +11,10 @@ namespace renderer
 
 	void font::register_default_font()
 	{
+		font_t font;
+		font.name = "default";
+		font.size = 16.0f;
+
 		auto font_resource = FindResourceA(GetModuleHandleA(NULL), MAKEINTRESOURCEA(ID_DEFAULTFONT), RT_RCDATA);
 		if (font_resource)
 		{
@@ -20,17 +24,12 @@ namespace renderer
 				default_font = std::string(LPSTR(LockResource(handle)), SizeofResource(nullptr, font_resource));
 			
 				ImFontConfig cfg;
-				cfg.SizePixels = 16.0f;
+				cfg.SizePixels = font.size;
 				cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 
-				ImGui::GetIO().Fonts->AddFontFromMemoryTTF(default_font.data(), default_font.size(), 16.0f, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+				font.handle = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(default_font.data(), default_font.size(), 16.0f, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
 			}
 		}
-
-		font_t font;
-		font.name = "default";
-		font.size = 16.0f;
-		font.handle = ImGui::GetIO().Fonts->Fonts[0];
 
 		loaded_fonts.push_back(font);
 	}

@@ -143,9 +143,14 @@ namespace renderer
 
 	void engine::shutdown()
 	{
+		// crashes when attempting to free our custom fonts
+		//ImGui::DestroyContext();
+
+		// force save current settings, this is normally done in DestroyContext
+		ImGui::SaveIniSettingsToDisk("uieditor\\config.ini");
+		
 		ImGui_ImplDX11_Shutdown();
 		ImGui_ImplWin32_Shutdown();
-		ImGui::DestroyContext();
 
 		cleanup_device();
 
