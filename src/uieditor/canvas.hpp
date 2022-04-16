@@ -14,9 +14,10 @@ namespace uieditor
 
 		static renderer::image_t* background;
 
-		static ImVec2 canvas_p0;
-		static ImVec2 canvas_p1;
-		static ImVec2 canvas_size;
+		static ImVec2 region_min;
+		static ImVec2 region_max;
+		static ImVec2 size;
+		static ImVec2 mouse_pos;
 
 		static void push_stencil(float left, float top, float right, float bottom);
 		static void pop_stencil();

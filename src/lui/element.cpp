@@ -608,6 +608,16 @@ namespace lui
 
 				lui::element::add_element(element, child);
 
+				child->currentAnimationState.topAnchor = true;
+				child->currentAnimationState.leftAnchor = true;
+				child->currentAnimationState.rightAnchor = false;
+				child->currentAnimationState.bottomAnchor = false;
+
+				child->currentAnimationState.leftPx = uieditor::canvas::mouse_pos.x;
+				child->currentAnimationState.topPx = uieditor::canvas::mouse_pos.y;
+				child->currentAnimationState.rightPx = uieditor::canvas::mouse_pos.x + 200.0f;
+				child->currentAnimationState.bottomPx = uieditor::canvas::mouse_pos.y + 200.0f;
+
 				uieditor::tree::select_element(child);
 
 				ImGui::CloseCurrentPopup();

@@ -10,7 +10,7 @@ namespace uieditor
 	bool canvas::show_element_highlight = true;
 	bool canvas::show_background = false;
 	bool canvas::show_grid = false;
-	float canvas::grid_step = 2.0f;
+	float canvas::grid_step = 24.0f;
 
 	renderer::image_t* canvas::background = nullptr;
 
@@ -21,13 +21,14 @@ namespace uieditor
 	int canvas::click_mode = UIAnchorType::ANCHOR_NONE;
 	int canvas::hover_mode = UIAnchorType::ANCHOR_NONE;
 
-	ImVec2 canvas::canvas_p0 = ImVec2(0.0f, 0.0f);
-	ImVec2 canvas::canvas_p1 = ImVec2(0.0f, 0.0f);
-	ImVec2 canvas::canvas_size = ImVec2(1280.0f, 720.0f);
+	ImVec2 canvas::region_min = ImVec2(0.0f, 0.0f);
+	ImVec2 canvas::region_max = ImVec2(0.0f, 0.0f);
+	ImVec2 canvas::size = ImVec2(1280.0f, 720.0f);
+	ImVec2 canvas::mouse_pos = ImVec2(0.0f, 0.0f);
 
 	void canvas::push_stencil(float left, float top, float right, float bottom)
 	{
-		draw_list->PushClipRect(ImVec2(left + canvas_p0.x, canvas_p0.y + top), ImVec2(right + canvas_p0.x, bottom + canvas_p0.y), true);
+		draw_list->PushClipRect(ImVec2(left + region_min.x, region_min.y + top), ImVec2(right + region_min.x, bottom + region_min.y), true);
 	}
 
 	void canvas::pop_stencil()
@@ -37,7 +38,7 @@ namespace uieditor
 
 	void canvas::draw_image(ID3D11ShaderResourceView* texture, float x, float y, float w, float h, float angle, ImVec4 color)
 	{
-		ImVec2 center((canvas_p0.x + x) + (w / 2), (canvas_p0.y + y) + (h / 2));
+		ImVec2 center((region_min.x + x) + (w / 2), (region_min.y + y) + (h / 2));
 
 		auto radians = static_cast<float>(angle * M_PI / 180.0f);
 		auto cos_a = cosf(radians);
@@ -68,20 +69,21 @@ namespace uieditor
 
 		auto size = font->handle->FontSize * scale;
 
-		draw_list->AddText(font->handle, font->handle->FontSize * scale, ImVec2(canvas_p0.x + x, canvas_p0.y + (y - size)), color, text, 0, wrap_width);
+		draw_list->AddText(font->handle, font->handle->FontSize * scale, ImVec2(region_min.x + x, region_min.y + (y - size)), color, text, 0, wrap_width);
 	}
 
 	void canvas::draw_grid()
 	{
-		auto GRID_STEP = ImVec2(canvas_size.x / grid_step, canvas_size.y / grid_step);
+		auto color = IM_COL32(20, 255, 50, 75);
+		auto step = size.x / grid_step;
 
-		for (float x = fmodf(0.0f, GRID_STEP.x); x < canvas_size.x; x += GRID_STEP.x)
+		for (auto x = fmodf(0.0f, step); x < size.x; x += step)
 		{
-			draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y), ImVec2(canvas_p0.x + x, canvas_p1.y), IM_COL32(200, 200, 200, 20));
+			draw_list->AddLine(ImVec2(region_min.x + x, region_min.y), ImVec2(region_min.x + x, region_max.y), color);
 		}
-		for (float y = fmodf(0.0f, GRID_STEP.y); y < canvas_size.y; y += GRID_STEP.y)
+		for (auto y = fmodf(0.0f, step); y < size.y; y += step)
 		{
-			draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y), ImVec2(canvas_p1.x, canvas_p0.y + y), IM_COL32(200, 200, 200, 20));
+			draw_list->AddLine(ImVec2(region_min.x, region_min.y + y), ImVec2(region_max.x, region_min.y + y), color);
 		}
 	}
 
@@ -97,10 +99,10 @@ namespace uieditor
 		auto element_right = width >= 0.0f ? element->right : element->left;
 		auto element_bottom = height >= 0.0f ? element->bottom : element->top;
 
-		auto left = canvas_p0.x + element_left - thickness;
-		auto top = canvas_p0.y + element_top - thickness;
-		auto right = canvas_p0.x + element_right + thickness;
-		auto bottom = canvas_p0.y + element_bottom + thickness;
+		auto left = region_min.x + element_left - thickness;
+		auto top = region_min.y + element_top - thickness;
+		auto right = region_min.x + element_right + thickness;
+		auto bottom = region_min.y + element_bottom + thickness;
 
 		auto anchor_color = IM_COL32(69, 141, 248, 255);
 		auto white_color = IM_COL32(244, 244, 244, 255);
@@ -112,7 +114,7 @@ namespace uieditor
 		{
 			if (hover_mode == UIAnchorType::ANCHOR_NONE)
 			{
-				::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+				::SetCursor(clicked_in_element && ImGui::IsMouseDown(ImGuiMouseButton_Left) ? ::LoadCursor(NULL, IDC_SIZEALL) : ::LoadCursor(NULL, IDC_ARROW));
 			}
 			else if (hover_mode == UIAnchorType::ANCHOR_TOP_LEFT)
 			{
@@ -316,7 +318,7 @@ namespace uieditor
 
 	void canvas::draw()
 	{
-		ImGui::SetNextWindowSize(ImVec2(canvas_size.x + 15.0f, canvas_size.y + 30.0f), ImGuiCond_::ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(size.x + 15.0f, size.y + 30.0f), ImGuiCond_::ImGuiCond_Always);
 
 		if (ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar))
 		{
@@ -324,15 +326,26 @@ namespace uieditor
 			auto root = lui::core::get_root_element();
 			auto is_element_root = properties::element == root;
 
-			canvas_p0 = ImGui::GetCursorScreenPos(); // ImDrawList API uses screen coordinates!
-			canvas_p1 = ImVec2(canvas_p0.x + canvas_size.x, canvas_p0.y + canvas_size.y);
+			auto content_region_min = ImGui::GetWindowContentRegionMin();
+			content_region_min.x += ImGui::GetWindowPos().x;
+			content_region_min.y += ImGui::GetWindowPos().y;
+			
+			auto content_region_max = ImGui::GetWindowContentRegionMax();
+			content_region_max.x += ImGui::GetWindowPos().x;
+			content_region_max.y += ImGui::GetWindowPos().y;
+
+			auto canvas_window_size = ImVec2(content_region_max.x - content_region_min.x, content_region_max.y - content_region_min.y);
+			auto cursor_screen_pos = ImGui::GetCursorScreenPos();
+
+			region_min = ImVec2(cursor_screen_pos.x + ((canvas_window_size.x - size.x) / 2.0f), cursor_screen_pos.y + ((canvas_window_size.y - size.y) / 2.0f));
+			region_max = ImVec2(region_min.x + size.x, region_min.y + size.y);
 
 			// This will catch our interactions
-			ImGui::InvisibleButton("canvas", canvas_size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+			ImGui::InvisibleButton("canvas", size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 
 			auto is_hovered = ImGui::IsItemHovered();
 			auto is_active = ImGui::IsItemActive();
-			auto mouse_pos_in_canvas = ImVec2(io->MousePos.x - canvas_p0.x, io->MousePos.y - canvas_p0.y);
+			mouse_pos = ImVec2(io->MousePos.x - region_min.x, io->MousePos.y - region_min.y);
 
 			draw_list = ImGui::GetWindowDrawList();
 
@@ -342,7 +355,7 @@ namespace uieditor
 			{
 				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
-					clicked_in_element = clicked_in_element_bounds(root, mouse_pos_in_canvas);
+					clicked_in_element = clicked_in_element_bounds(root, mouse_pos);
 
 					if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 					{
@@ -352,10 +365,10 @@ namespace uieditor
 						}
 					}
 
-					update_mode_for_anchors(&click_mode, properties::element, mouse_pos_in_canvas);
+					update_mode_for_anchors(&click_mode, properties::element, mouse_pos);
 				}
 
-				update_mode_for_anchors(&hover_mode, properties::element, mouse_pos_in_canvas);
+				update_mode_for_anchors(&hover_mode, properties::element, mouse_pos);
 			}
 
 			if (is_active && clicked_in_element)
@@ -392,12 +405,8 @@ namespace uieditor
 						}
 						else if (click_mode == UIAnchorType::ANCHOR_BOTTOM_LEFT)
 						{
-							//uieditor::log::print(uieditor::log_warning, "delta[%g, %g]", delta.x, delta.y);
-
-
-
-							properties::element->currentAnimationState.leftPx += keep_current_aspect_ratio ? (delta.x + delta.y) : delta.x;
-							properties::element->currentAnimationState.bottomPx -= keep_current_aspect_ratio ? (delta.x + delta.y) : delta.y;
+							properties::element->currentAnimationState.leftPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.x;
+							properties::element->currentAnimationState.bottomPx += keep_current_aspect_ratio ? ((delta.x + delta.y) / 2.0f) : delta.y;
 						}
 						else if (click_mode == UIAnchorType::ANCHOR_BOTTOM_RIGHT)
 						{
@@ -450,18 +459,18 @@ namespace uieditor
 
 			// Draw border and background color
 			{
-				draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(50, 50, 50, 255));
-				draw_list->AddRect(ImVec2(canvas_p0.x - 1, canvas_p0.y - 1), ImVec2(canvas_p1.x + 1, canvas_p1.y + 1), IM_COL32(255, 255, 255, 255));
+				draw_list->AddRectFilled(region_min, region_max, IM_COL32(20, 20, 20, 255));
+				draw_list->AddRect(ImVec2(region_min.x - 1, region_min.y - 1), ImVec2(region_max.x + 1, region_max.y + 1), IM_COL32(255, 255, 255, 100));
 			}
 
 			// keep everything drawn inside the canvas
-			draw_list->PushClipRect(canvas_p0, canvas_p1, true);
+			draw_list->PushClipRect(region_min, region_max, true);
 
 			if (show_background)
 			{
 				if (background)
 				{
-					draw_image(background->texture, 0.0f, 0.0f, canvas_size.x, canvas_size.y, 0.0f, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+					draw_image(background->texture, 0.0f, 0.0f, size.x, size.y, 0.0f, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 				}
 			}
 

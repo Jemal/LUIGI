@@ -53,7 +53,7 @@ namespace uieditor
 
 		RegisterClassExA(&wc);
 
-		hwnd = CreateWindowA(wc.lpszClassName, "LUIGI", WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, 100, 100, 1920, 1080, NULL, NULL, wc.hInstance, NULL);
+		hwnd = CreateWindowA(wc.lpszClassName, "LUIGI", WS_OVERLAPPEDWINDOW, 100, 100, 1920, 1080, NULL, NULL, wc.hInstance, NULL);
 	}
 
 	LRESULT WINAPI app::wnd_proc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -91,11 +91,14 @@ namespace uieditor
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				ImGui::MenuItem("New...");
-				ImGui::MenuItem("Open...");
-				ImGui::MenuItem("Save...");
-				ImGui::MenuItem("Save As...");
+				ImGui::MenuItem("New", "CTRL+N");
+				ImGui::MenuItem("Open", "CTRL+O");
 
+				ImGui::Separator();
+
+				ImGui::MenuItem("Save", "CTRL+S");
+				ImGui::MenuItem("Save As");
+				
 				ImGui::EndMenu();
 			}
 
@@ -106,24 +109,13 @@ namespace uieditor
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Canvas"))
+			if (ImGui::BeginMenu("View"))
 			{
-				ImGui::MenuItem("Show highlighted element", NULL, &canvas::show_element_highlight);
+				ImGui::MenuItem("Show Background Image", "CTRL+B", &canvas::show_background);
 
-				if (ImGui::BeginMenu("Grid"))
+				if (ImGui::BeginMenu("Background Image"))
 				{
-					ImGui::Checkbox("Show", &canvas::show_grid);
-
-					ImGui::InputFloat("Step", &canvas::grid_step, 1.0f, 2.0f, "%.0f");
-
-					ImGui::EndMenu();
-				}
-
-				if (ImGui::BeginMenu("Background"))
-				{
-					ImGui::Checkbox("Show", &canvas::show_background);
-
-					if (ImGui::BeginCombo("Image", canvas::background == nullptr ? "Select..." : canvas::background->name.data()))
+					if (ImGui::BeginCombo("##BackgroundImage", canvas::background == nullptr ? "Select..." : canvas::background->name.data()))
 					{
 						for (auto i = 0; i < renderer::image::loaded_images.size(); i++)
 						{
@@ -137,6 +129,16 @@ namespace uieditor
 
 						ImGui::EndCombo();
 					}
+
+					ImGui::EndMenu();
+				}
+
+				ImGui::Separator();
+
+				ImGui::MenuItem("Grid", "ALT+G", &canvas::show_grid);
+				if (ImGui::BeginMenu("Grid Step"))
+				{
+					ImGui::InputFloat("##GridStep", &canvas::grid_step, 1.0f, 2.0f, "%.0f");
 
 					ImGui::EndMenu();
 				}

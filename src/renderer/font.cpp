@@ -22,7 +22,7 @@ namespace renderer
 			if (handle)
 			{
 				default_font = std::string(LPSTR(LockResource(handle)), SizeofResource(nullptr, font_resource));
-			
+
 				ImFontConfig cfg;
 				cfg.SizePixels = font.size;
 				cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
