@@ -13,7 +13,7 @@ namespace renderer
 	class image
 	{
 	public:
-		static std::vector<image_t> loaded_images;
+		static std::vector<image_t> images_;
 
 		static ID3D11ShaderResourceView* create_texture(std::string name);
 		static void create_texture_for_image(std::string name, image_t* image);

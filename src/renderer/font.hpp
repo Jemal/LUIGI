@@ -12,7 +12,7 @@ namespace renderer
 	class font
 	{
 	public:
-		static std::vector<font_t> loaded_fonts;
+		static std::vector<font_t> fonts_;
 
 		static void register_default_font();
 

@@ -7,19 +7,14 @@ namespace uieditor
 	public:
 		static void draw();
 
-		static float zoom_pct;
+		static float zoom_pct_;
 
-		static bool show_element_highlight;
-		static bool show_grid;
-		static float grid_step;
-		static bool show_background;
+		static renderer::image_t* background_image_;
 
-		static renderer::image_t* background;
+		static ImVec4 region_;
+		static ImVec2 size_;
 
-		static ImVec2 region_min;
-		static ImVec2 region_max;
-		static ImVec2 size;
-		static ImVec2 mouse_pos;
+		static ImVec2 mouse_pos_;
 
 		static void push_stencil(float left, float top, float right, float bottom);
 		static void pop_stencil();
@@ -28,16 +23,16 @@ namespace uieditor
 		static void draw_text(float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float scale, float wrap_width, int alignment);
 	
 	private:
-		static ImDrawList* draw_list;
+		static ImDrawList* draw_list_;
 
 		static void draw_grid();
 		static void highlight_selected_element(UIElement* element);
 
-		static bool clicked_in_element;
-		static int click_mode;
-		static int hover_mode;
+		static bool clicked_in_element_;
+		static int click_mode_;
+		static int hover_mode_;
 
-		static bool link_width_height;
+		static bool link_width_height_;
 
 		static void update_mode_for_anchors(int* mode, UIElement* element, ImVec2 mouse_pos);
 

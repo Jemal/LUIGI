@@ -6,11 +6,11 @@
 
 namespace uieditor
 {
-	UIElement* properties::element = nullptr;
-	char properties::element_name[32] = {};
-	char properties::element_text[256] = {};
+	UIElement* properties::element_ = nullptr;
+	char properties::element_name_[32] = {};
+	char properties::element_text_[256] = {};
 
-	float properties::input_fast_step = 10.0f;
+	float properties::input_fast_step_ = 10.0f;
 
 	void properties::begin_property(const char* label)
 	{
@@ -69,11 +69,11 @@ namespace uieditor
 	{
 		static int selected_image = 0;
 
-		if (combo_property("Image", element->currentAnimationState.image == nullptr ? "Select..." : element->currentAnimationState.image->name.data()))
+		if (combo_property("Image", element_->currentAnimationState.image == nullptr ? "Select..." : element_->currentAnimationState.image->name.data()))
 		{
-			for (auto i = 0; i < renderer::image::loaded_images.size(); i++)
+			for (auto i = 0; i < renderer::image::images_.size(); i++)
 			{
-				auto* image = &renderer::image::loaded_images.at(i);
+				auto* image = &renderer::image::images_.at(i);
 
 				ImGui::PushID(i);
 
@@ -83,7 +83,7 @@ namespace uieditor
 				{
 					selected_image = i;
 
-					element->currentAnimationState.image = image;
+					element_->currentAnimationState.image = image;
 				}
 
 				if (is_selected)
@@ -102,11 +102,11 @@ namespace uieditor
 	{
 		static int selected_font = 0;
 
-		if (combo_property("Font", element->currentAnimationState.font == nullptr ? "Select..." : element->currentAnimationState.font->name.data()))
+		if (combo_property("Font", element_->currentAnimationState.font == nullptr ? "Select..." : element_->currentAnimationState.font->name.data()))
 		{
-			for (auto i = 0; i < renderer::font::loaded_fonts.size(); i++)
+			for (auto i = 0; i < renderer::font::fonts_.size(); i++)
 			{
-				auto* font = &renderer::font::loaded_fonts.at(i);
+				auto* font = &renderer::font::fonts_.at(i);
 
 				ImGui::PushID(i);
 
@@ -116,7 +116,7 @@ namespace uieditor
 				{
 					selected_font = i;
 
-					element->currentAnimationState.font = font;
+					element_->currentAnimationState.font = font;
 				}
 
 				if (is_selected)
@@ -130,98 +130,98 @@ namespace uieditor
 			ImGui::EndCombo();
 		}
 
-		slider_property("Font Scale:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.textScale, 0.0f, 1.0f);
+		slider_property("Font Scale:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.textScale, 0.0f, 1.0f);
 
-		text_property("Text:", uieditor::properties::element_text, IM_ARRAYSIZE(uieditor::properties::element_text));
+		text_property("Text:", element_text_, IM_ARRAYSIZE(element_text_));
 
-		if (element->text.data() != uieditor::properties::element_text)
+		if (element_->text.data() != element_text_)
 		{
-			element->text = uieditor::properties::element_text;
+			element_->text = element_text_;
 		}
 	}
 
 	void properties::draw_canvas_properties()
 	{
-		if (input_property("Width:", ImGuiDataType_::ImGuiDataType_Float, &canvas::size.x, 1.0f, input_fast_step))
+		if (input_property("Width:", ImGuiDataType_::ImGuiDataType_Float, &canvas::size_.x, 1.0f, input_fast_step_))
 		{
-			lui::element::invalidate_layout(element);
+			lui::element::invalidate_layout(element_);
 		}
 
-		if (input_property("Height:", ImGuiDataType_::ImGuiDataType_Float, &canvas::size.y, 1.0f, input_fast_step))
+		if (input_property("Height:", ImGuiDataType_::ImGuiDataType_Float, &canvas::size_.y, 1.0f, input_fast_step_))
 		{
-			lui::element::invalidate_layout(element);
+			lui::element::invalidate_layout(element_);
 		}
 	}
 	
 	void properties::draw_element_properties()
 	{
-		if (combo_property("Anchors:", lui::element::anchors_to_string(lui::element::anchors_to_int(element))))
+		if (combo_property("Anchors:", lui::element::anchors_to_string(lui::element::anchors_to_int(element_))))
 		{
 			for (auto i = 0; i < UIAnchorType::ANCHOR_COUNT; i++)
 			{
 				if (ImGui::Selectable(lui::element::anchors_to_string(i)))
 				{
-					element->currentAnimationState.leftAnchor = (i & UIAnchorType::ANCHOR_LEFT) != 0;
-					element->currentAnimationState.topAnchor = (i & UIAnchorType::ANCHOR_TOP) != 0;
-					element->currentAnimationState.rightAnchor = (i & UIAnchorType::ANCHOR_RIGHT) != 0;
-					element->currentAnimationState.bottomAnchor = (i & UIAnchorType::ANCHOR_BOTTOM) != 0;
+					element_->currentAnimationState.leftAnchor = (i & UIAnchorType::ANCHOR_LEFT) != 0;
+					element_->currentAnimationState.topAnchor = (i & UIAnchorType::ANCHOR_TOP) != 0;
+					element_->currentAnimationState.rightAnchor = (i & UIAnchorType::ANCHOR_RIGHT) != 0;
+					element_->currentAnimationState.bottomAnchor = (i & UIAnchorType::ANCHOR_BOTTOM) != 0;
 
-					lui::element::invalidate_layout(element);
+					lui::element::invalidate_layout(element_);
 				}
 			}
 
 			ImGui::EndCombo();
 		}
 
-		if (input_property("Left:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.leftPx, 1.0f, input_fast_step))
+		if (input_property("Left:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.leftPx, 1.0f, input_fast_step_))
 		{
-			lui::element::invalidate_layout(element);
+			lui::element::invalidate_layout(element_);
 		}
 
-		if (input_property("Right:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.rightPx, 1.0f, input_fast_step))
+		if (input_property("Right:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.rightPx, 1.0f, input_fast_step_))
 		{
-			lui::element::invalidate_layout(element);
+			lui::element::invalidate_layout(element_);
 		}
 
-		if (input_property("Top:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.topPx, 1.0f, input_fast_step))
+		if (input_property("Top:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.topPx, 1.0f, input_fast_step_))
 		{
-			lui::element::invalidate_layout(element);
+			lui::element::invalidate_layout(element_);
 		}
 
-		if (input_property("Bottom:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.bottomPx, 1.0f, input_fast_step))
+		if (input_property("Bottom:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.bottomPx, 1.0f, input_fast_step_))
 		{
-			lui::element::invalidate_layout(element);
+			lui::element::invalidate_layout(element_);
 		}
 
-		color_property("Color:", &element->currentAnimationState.red);
+		color_property("Color:", &element_->currentAnimationState.red);
 
-		slider_property("Alpha:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.alpha, 0.0f, 1.0f);
+		slider_property("Alpha:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.alpha, 0.0f, 1.0f);
 
-		if (element->type == UIElementType::UI_IMAGE)
+		if (element_->type == UIElementType::UI_IMAGE)
 		{
 			draw_image_properties();
 		}
-		else if (element->type == UIElementType::UI_TEXT)
+		else if (element_->type == UIElementType::UI_TEXT)
 		{
 			draw_text_properties();
 		}
 
-		if (input_property("Rotation:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.rotation, 1.0f, input_fast_step))
+		if (input_property("Rotation:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.rotation, 1.0f, input_fast_step_))
 		{
-			lui::element::invalidate_layout(element);
+			lui::element::invalidate_layout(element_);
 		}
 
-		auto uses_stencil = (element->currentAnimationState.flags & AS_STENCIL) != 0;
+		auto uses_stencil = (element_->currentAnimationState.flags & AS_STENCIL) != 0;
 
 		if (bool_property("Stencil", &uses_stencil))
 		{
 			if (uses_stencil)
 			{
-				element->currentAnimationState.flags |= AS_STENCIL;
+				element_->currentAnimationState.flags |= AS_STENCIL;
 			}
 			else
 			{
-				element->currentAnimationState.flags &= ~AS_STENCIL;
+				element_->currentAnimationState.flags &= ~AS_STENCIL;
 			}
 		}
 	}
@@ -230,14 +230,14 @@ namespace uieditor
 	{
 		if (ImGui::Begin("Properties"))
 		{
-			if (element != nullptr)
+			if (element_ != nullptr)
 			{
 				if (ImGui::BeginTable("label_property", 2, ImGuiTableFlags_NoSavedSettings))
 				{
 					ImGui::TableSetupColumn("##Label", ImGuiTableColumnFlags_WidthFixed, 100);
 
 					auto root = lui::core::get_root_element();
-					if (element == root)
+					if (element_ == root)
 					{
 						draw_canvas_properties();
 					}

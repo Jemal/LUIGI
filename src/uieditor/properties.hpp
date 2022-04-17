@@ -7,12 +7,12 @@ namespace uieditor
 	public:
 		static void draw();
 
-		static UIElement* element;
-		static char element_name[32];
-		static char element_text[256];
+		static UIElement* element_;
+		static char element_name_[32];
+		static char element_text_[256];
 
 	private:
-		static float input_fast_step;
+		static float input_fast_step_;
 
 		static void begin_property(const char* label);
 		

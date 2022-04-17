@@ -12,10 +12,15 @@ namespace uieditor
 		
 		static void frame();
 
-		static HWND hwnd;
-		static WNDCLASSEX wc;
+		static HWND hwnd_;
+		static WNDCLASSEX wc_;
+
+		static bool show_background_;
+
+		static bool show_grid_;
+		static float grid_step_;
 
 	private:
-		static bool show_imgui_demo;
+		static bool show_imgui_demo_;
 	};
 }

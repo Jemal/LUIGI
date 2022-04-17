@@ -7,7 +7,7 @@
 namespace renderer
 {
 	std::string font::default_font;
-	std::vector<font_t> font::loaded_fonts;
+	std::vector<font_t> font::fonts_;
 
 	void font::register_default_font()
 	{
@@ -31,7 +31,7 @@ namespace renderer
 			}
 		}
 
-		loaded_fonts.push_back(font);
+		fonts_.push_back(font);
 	}
 
 	void font::register_font(std::string name, std::string path, int size)
@@ -55,6 +55,6 @@ namespace renderer
 
 		uieditor::log::print(uieditor::log_message_type::log_normal, "Registered font '%s'", font.name.data());
 
-		loaded_fonts.push_back(font);
+		fonts_.push_back(font);
 	}
 }

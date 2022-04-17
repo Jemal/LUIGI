@@ -4,16 +4,16 @@
 
 namespace renderer
 {
-	globals_t engine::globals = {};
+	globals_t engine::globals_ = {};
 
 	void engine::create_render_target()
 	{
 		ID3D11Texture2D* back_buffer;
-		globals.swapchain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
+		globals_.swapchain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
 
 		if (back_buffer != NULL)
 		{
-			globals.device->CreateRenderTargetView(back_buffer, NULL, &globals.render_target_view);
+			globals_.device->CreateRenderTargetView(back_buffer, NULL, &globals_.render_target_view);
 		}
 
 		back_buffer->Release();
@@ -21,10 +21,10 @@ namespace renderer
 
 	void engine::cleanup_render_target()
 	{
-		if (globals.render_target_view)
+		if (globals_.render_target_view)
 		{
-			globals.render_target_view->Release();
-			globals.render_target_view = NULL;
+			globals_.render_target_view->Release();
+			globals_.render_target_view = NULL;
 		}
 	}
 
@@ -50,7 +50,7 @@ namespace renderer
 		D3D_FEATURE_LEVEL featureLevel;
 		D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
 
-		if (D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &globals.swapchain, &globals.device, &featureLevel, &globals.device_context) != S_OK)
+		if (D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &globals_.swapchain, &globals_.device, &featureLevel, &globals_.device_context) != S_OK)
 		{
 			return false;
 		}
@@ -64,22 +64,22 @@ namespace renderer
 	{
 		cleanup_render_target();
 
-		if (globals.swapchain)
+		if (globals_.swapchain)
 		{ 
-			globals.swapchain->Release();
-			globals.swapchain = NULL;
+			globals_.swapchain->Release();
+			globals_.swapchain = NULL;
 		}
 
-		if (globals.device_context)
+		if (globals_.device_context)
 		{
-			globals.device_context->Release();
-			globals.device_context = NULL;
+			globals_.device_context->Release();
+			globals_.device_context = NULL;
 		}
 		
-		if (globals.device)
+		if (globals_.device)
 		{
-			globals.device->Release();
-			globals.device = NULL;
+			globals_.device->Release();
+			globals_.device = NULL;
 		}
 	}
 
@@ -102,16 +102,16 @@ namespace renderer
 
 	void engine::init()
 	{
-		if (!create_device(uieditor::app::hwnd))
+		if (!create_device(uieditor::app::hwnd_))
 		{
 			cleanup_device();
-			UnregisterClassA(uieditor::app::wc.lpszClassName, uieditor::app::wc.hInstance);
+			UnregisterClassA(uieditor::app::wc_.lpszClassName, uieditor::app::wc_.hInstance);
 
 			return;
 		}
 
-		ShowWindow(uieditor::app::hwnd, SW_SHOWDEFAULT);
-		UpdateWindow(uieditor::app::hwnd);
+		ShowWindow(uieditor::app::hwnd_, SW_SHOWDEFAULT);
+		UpdateWindow(uieditor::app::hwnd_);
 
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -130,13 +130,13 @@ namespace renderer
 		// need a better way to register fonts since hardcoding them is dumb
 		//font::register_font("DebugFont", "consolas", 20.0f);
 
-		ImGui_ImplWin32_Init(uieditor::app::hwnd);
-		ImGui_ImplDX11_Init(globals.device, globals.device_context);
+		ImGui_ImplWin32_Init(uieditor::app::hwnd_);
+		ImGui_ImplDX11_Init(globals_.device, globals_.device_context);
 		ImGui_ImplDX11_CreateDeviceObjects();
 
-		globals.clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+		globals_.clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-		globals.link_icon = image::create_texture("uieditor\\assets\\link_image.png");
+		globals_.link_icon = image::create_texture("uieditor\\assets\\link_image.png");
 
 		register_images_for_directory("uieditor\\images");
 	}
@@ -154,8 +154,8 @@ namespace renderer
 
 		cleanup_device();
 
-		DestroyWindow(uieditor::app::hwnd);
-		UnregisterClassA(uieditor::app::wc.lpszClassName, uieditor::app::wc.hInstance);
+		DestroyWindow(uieditor::app::hwnd_);
+		UnregisterClassA(uieditor::app::wc_.lpszClassName, uieditor::app::wc_.hInstance);
 	}
 
 	void engine::frame()
@@ -188,14 +188,14 @@ namespace renderer
 
 			ImGui::Render();
 
-			globals.device_context->OMSetRenderTargets(1, &globals.render_target_view, NULL);
+			globals_.device_context->OMSetRenderTargets(1, &globals_.render_target_view, NULL);
 
-			const float clear_color_with_alpha[4] = { globals.clear_color.x * globals.clear_color.w, globals.clear_color.y * globals.clear_color.w, globals.clear_color.z * globals.clear_color.w, globals.clear_color.w };
-			globals.device_context->ClearRenderTargetView(globals.render_target_view, clear_color_with_alpha);
+			const float clear_color_with_alpha[4] = { globals_.clear_color.x * globals_.clear_color.w, globals_.clear_color.y * globals_.clear_color.w, globals_.clear_color.z * globals_.clear_color.w, globals_.clear_color.w };
+			globals_.device_context->ClearRenderTargetView(globals_.render_target_view, clear_color_with_alpha);
 
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-			globals.swapchain->Present(1, 0); // Present with vsync
+			globals_.swapchain->Present(1, 0); // Present with vsync
 		}
 	}
 
@@ -203,7 +203,7 @@ namespace renderer
 	{
 		renderer::engine::cleanup_render_target();
 
-		renderer::engine::globals.swapchain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+		renderer::engine::globals_.swapchain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
 
 		renderer::engine::create_render_target();
 	}

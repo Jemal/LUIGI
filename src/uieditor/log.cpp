@@ -3,7 +3,7 @@
 
 namespace uieditor
 {
-	ImVector<log_message> log::output;
+	ImVector<log_message> log::output_;
 
 	void log::print(int type, const char* fmt, ...)
 	{
@@ -27,7 +27,7 @@ namespace uieditor
 	{
 		auto string = _strdup(message);
 
-		output.push_back({ type, string });
+		output_.push_back({ type, string });
 
 		::printf(string);
 		::printf("\n");
@@ -40,13 +40,13 @@ namespace uieditor
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
 
 				ImGuiListClipper clipper;
-				clipper.Begin(output.size());
+				clipper.Begin(output_.size());
 
 				while (clipper.Step())
 				{
 					for (auto i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 					{
-						auto line = output[i];
+						auto line = output_[i];
 
 						ImVec4 color;
 						auto has_color = line.type == log_message_type::log_error || line.type == log_message_type::log_warning;

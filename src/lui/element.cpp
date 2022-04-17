@@ -378,8 +378,8 @@ namespace lui
 		{
 			element->left = root->currentAnimationState.globalLeft = 0.0f;
 			element->top = root->currentAnimationState.globalTop = 0.0f;
-			element->right = root->currentAnimationState.globalRight = uieditor::canvas::size.x;
-			element->bottom = root->currentAnimationState.globalBottom = uieditor::canvas::size.y;
+			element->right = root->currentAnimationState.globalRight = uieditor::canvas::size_.x;
+			element->bottom = root->currentAnimationState.globalBottom = uieditor::canvas::size_.y;
 		}
 		else
 		{
@@ -593,12 +593,12 @@ namespace lui
 	{
 		if (ImGui::BeginPopupContextItem(element->id.data()))
 		{
-			if (uieditor::properties::element != element)
+			if (uieditor::properties::element_ != element)
 			{
 				uieditor::tree::select_element(element);
 			}
 
-			ImGui::PushItemWidth(ImGui::CalcTextSize("A").x * IM_ARRAYSIZE(uieditor::properties::element_name) + 5.0f);
+			ImGui::PushItemWidth(ImGui::CalcTextSize("A").x * IM_ARRAYSIZE(uieditor::properties::element_name_) + 5.0f);
 
 			if (ImGui::Selectable("Add child"))
 			{
@@ -616,8 +616,8 @@ namespace lui
 					child->currentAnimationState.rightAnchor = false;
 					child->currentAnimationState.bottomAnchor = false;
 
-					auto left = uieditor::canvas::mouse_pos.x - (element->left * uieditor::canvas::zoom_pct);
-					auto top = uieditor::canvas::mouse_pos.y - (element->top * uieditor::canvas::zoom_pct);
+					auto left = uieditor::canvas::mouse_pos_.x - (element->left * uieditor::canvas::zoom_pct_);
+					auto top = uieditor::canvas::mouse_pos_.y - (element->top * uieditor::canvas::zoom_pct_);
 					
 					//::log::print(0, "%g %g [%g, %g]", left, top, uieditor::canvas::mouse_pos.x, uieditor::canvas::mouse_pos.y);
 
@@ -659,21 +659,21 @@ namespace lui
 
 				if (parent)
 				{
-					uieditor::properties::element = parent;
+					uieditor::properties::element_ = parent;
 				}
 				else
 				{
-					uieditor::properties::element = lui::core::element_pool_.at(0);
+					uieditor::properties::element_ = lui::core::element_pool_.at(0);
 				}
 			}
 
 			if (ImGui::BeginMenu("Edit Name"))
 			{
-				ImGui::InputText("##id", uieditor::properties::element_name, IM_ARRAYSIZE(uieditor::properties::element_name));
+				ImGui::InputText("##id", uieditor::properties::element_name_, IM_ARRAYSIZE(uieditor::properties::element_name_));
 
-				if (element->name.data() != uieditor::properties::element_name)
+				if (element->name.data() != uieditor::properties::element_name_)
 				{
-					element->name = uieditor::properties::element_name;
+					element->name = uieditor::properties::element_name_;
 				}
 
 				ImGui::EndMenu();

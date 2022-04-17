@@ -24,6 +24,6 @@ namespace uieditor
 		static void print_message(int type, char* message);
 
 	private:
-		static ImVector<log_message> output;
+		static ImVector<log_message> output_;
 	};
 }

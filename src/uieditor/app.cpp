@@ -12,10 +12,15 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 namespace uieditor
 {
-	bool app::show_imgui_demo = false;
+	bool app::show_background_ = false;
 
-	HWND app::hwnd;
-	WNDCLASSEX app::wc;
+	bool app::show_grid_ = false;
+	float app::grid_step_ = 24.0f;
+
+	bool app::show_imgui_demo_ = false;
+
+	HWND app::hwnd_;
+	WNDCLASSEX app::wc_;
 
 	int app::init()
 	{
@@ -27,7 +32,7 @@ namespace uieditor
 
 		lui::core::init();
 
-		SetWindowTextA(hwnd, "LUIGI - Untitled");
+		SetWindowTextA(hwnd_, "LUIGI - Untitled");
 
 		renderer::engine::frame();
 
@@ -38,22 +43,22 @@ namespace uieditor
 
 	void app::create_window()
 	{
-		wc.cbSize = sizeof(WNDCLASSEX);
-		wc.style = CS_CLASSDC;
-		wc.lpfnWndProc = uieditor::app::wnd_proc;
-		wc.cbClsExtra = 0;
-		wc.cbWndExtra = 0;
-		wc.hInstance = GetModuleHandle(NULL);
-		wc.hIcon = LoadIconA(GetModuleHandle(NULL), MAKEINTRESOURCEA(ID_ICON));
-		wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-		wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
-		wc.lpszMenuName = nullptr;
-		wc.lpszClassName = "LUIGI";
-		wc.hIconSm = NULL;
+		wc_.cbSize = sizeof(WNDCLASSEX);
+		wc_.style = CS_CLASSDC;
+		wc_.lpfnWndProc = uieditor::app::wnd_proc;
+		wc_.cbClsExtra = 0;
+		wc_.cbWndExtra = 0;
+		wc_.hInstance = GetModuleHandle(NULL);
+		wc_.hIcon = LoadIconA(GetModuleHandle(NULL), MAKEINTRESOURCEA(ID_ICON));
+		wc_.hCursor = LoadCursor(nullptr, IDC_ARROW);
+		wc_.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
+		wc_.lpszMenuName = nullptr;
+		wc_.lpszClassName = "LUIGI";
+		wc_.hIconSm = NULL;
 
-		RegisterClassExA(&wc);
+		RegisterClassExA(&wc_);
 
-		hwnd = CreateWindowA(wc.lpszClassName, "LUIGI", WS_OVERLAPPEDWINDOW, 100, 100, 1920, 1080, NULL, NULL, wc.hInstance, NULL);
+		hwnd_ = CreateWindowA(wc_.lpszClassName, "LUIGI", WS_OVERLAPPEDWINDOW, 100, 100, 1920, 1080, NULL, NULL, wc_.hInstance, NULL);
 	}
 
 	LRESULT WINAPI app::wnd_proc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -66,7 +71,7 @@ namespace uieditor
 		switch (msg)
 		{
 		case WM_SIZE:
-			if (renderer::engine::globals.device != NULL && wParam != SIZE_MINIMIZED)
+			if (renderer::engine::globals_.device != NULL && wParam != SIZE_MINIMIZED)
 			{
 				renderer::engine::resize(static_cast<UINT>(LOWORD(lParam)), static_cast<UINT>(HIWORD(lParam)));
 			}
@@ -111,19 +116,19 @@ namespace uieditor
 
 			if (ImGui::BeginMenu("View"))
 			{
-				ImGui::MenuItem("Show Background Image", "CTRL+B", &canvas::show_background);
+				ImGui::MenuItem("Show Background Image", "CTRL+B", &show_background_);
 
 				if (ImGui::BeginMenu("Background Image"))
 				{
-					if (ImGui::BeginCombo("##BackgroundImage", canvas::background == nullptr ? "Select..." : canvas::background->name.data()))
+					if (ImGui::BeginCombo("##BackgroundImage", canvas::background_image_ == nullptr ? "Select..." : canvas::background_image_->name.data()))
 					{
-						for (auto i = 0; i < renderer::image::loaded_images.size(); i++)
+						for (auto i = 0; i < renderer::image::images_.size(); i++)
 						{
-							auto* image = &renderer::image::loaded_images.at(i);
+							auto* image = &renderer::image::images_.at(i);
 
 							if (ImGui::Selectable(image->name.data()))
 							{
-								canvas::background = image;
+								canvas::background_image_ = image;
 							}
 						}
 
@@ -135,10 +140,10 @@ namespace uieditor
 
 				ImGui::Separator();
 
-				ImGui::MenuItem("Grid", "ALT+G", &canvas::show_grid);
+				ImGui::MenuItem("Grid", "ALT+G", &show_grid_);
 				if (ImGui::BeginMenu("Grid Step"))
 				{
-					ImGui::InputFloat("##GridStep", &canvas::grid_step, 1.0f, 2.0f, "%.0f");
+					ImGui::InputFloat("##GridStep", &grid_step_, 1.0f, 2.0f, "%.0f");
 
 					ImGui::EndMenu();
 				}
@@ -148,7 +153,7 @@ namespace uieditor
 
 			if (ImGui::BeginMenu("Help"))
 			{
-				ImGui::MenuItem("ImGui Demo", NULL, &show_imgui_demo);
+				ImGui::MenuItem("ImGui Demo", NULL, &show_imgui_demo_);
 
 				ImGui::EndMenu();
 			}
@@ -158,7 +163,7 @@ namespace uieditor
 
 		ImGui::DockSpaceOverViewport();
 
-		if (show_imgui_demo)
+		if (show_imgui_demo_)
 		{
 			ImGui::ShowDemoWindow();
 		}

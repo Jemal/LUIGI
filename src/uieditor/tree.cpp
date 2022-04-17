@@ -4,35 +4,35 @@
 
 namespace uieditor
 {
-	UIElement* tree::payload_element = nullptr;
+	UIElement* tree::payload_element_ = nullptr;
 
 	void tree::select_element(UIElement* element)
 	{
-		properties::element = element;
-		strcpy(properties::element_name, element->name.data());
-		strcpy(properties::element_text, element->text.data());
+		properties::element_ = element;
+		strcpy(properties::element_name_, element->name.data());
+		strcpy(properties::element_text_, element->text.data());
 	}
 
 	void tree::handle_drop_element_to_parent(UIElement* element)
 	{
 		auto* new_parent = element;
 
-		if (lui::element::is_descendent_of(new_parent, payload_element))
+		if (lui::element::is_descendent_of(new_parent, payload_element_))
 		{
 			return;
 		}
 
-		if (payload_element->parent == new_parent)
+		if (payload_element_->parent == new_parent)
 		{
 			return;
 		}
 
-		if (payload_element->parent)
+		if (payload_element_->parent)
 		{
-			lui::element::remove_from_parent(payload_element);
+			lui::element::remove_from_parent(payload_element_);
 		}
 
-		lui::element::add_element(new_parent, payload_element);
+		lui::element::add_element(new_parent, payload_element_);
 	}
 
 	void tree::display_element_tree(UIElement* element)
@@ -46,10 +46,10 @@ namespace uieditor
 
 		if (ImGui::BeginDragDropSource())
 		{
-			payload_element = element;
+			payload_element_ = element;
 
 			ImGui::SetDragDropPayload("ELEMENT", NULL, 0);
-			ImGui::Text(payload_element->name.data());
+			ImGui::Text(payload_element_->name.data());
 			ImGui::EndDragDropSource();
 		}
 
@@ -79,13 +79,13 @@ namespace uieditor
 
 					if (i == UIElementType::UI_IMAGE)
 					{
-						element->currentAnimationState.image = &renderer::image::loaded_images.at(0);
+						element->currentAnimationState.image = &renderer::image::images_.at(0);
 
 						element->renderFunction = lui::element::ui_image_render;
 					}
 					else if (i == UIElementType::UI_TEXT)
 					{
-						element->currentAnimationState.font = &renderer::font::loaded_fonts.at(0);
+						element->currentAnimationState.font = &renderer::font::fonts_.at(0);
 						element->currentAnimationState.textScale = 1.0f;
 
 						element->renderFunction = lui::element::ui_text_render;
@@ -113,12 +113,12 @@ namespace uieditor
 		if (element->firstChild != nullptr)
 		{
 			auto node_flags = ImGuiTreeNodeFlags_None | ImGuiTreeNodeFlags_SpanFullWidth;
-			if (element == properties::element)
+			if (element == properties::element_)
 			{
 				node_flags |= ImGuiTreeNodeFlags_Selected;
 			}
 
-			if (element == properties::element->parent)
+			if (element == properties::element_->parent)
 			{
 				ImGui::SetNextItemOpen(true);
 			}
@@ -152,7 +152,7 @@ namespace uieditor
 		else
 		{
 			auto node_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth;
-			if (element == properties::element)
+			if (element == properties::element_)
 			{
 				node_flags |= ImGuiTreeNodeFlags_Selected;
 				ImGui::SetNextItemOpen(true);

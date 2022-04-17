@@ -8,7 +8,7 @@
 
 namespace renderer
 {
-	std::vector<image_t> image::loaded_images;
+	std::vector<image_t> image::images_;
 
 	ID3D11ShaderResourceView* image::create_texture(std::string name)
 	{
@@ -39,7 +39,7 @@ namespace renderer
 		sub_resource.pSysMem = image_data;
 		sub_resource.SysMemPitch = desc.Width * 4;
 		sub_resource.SysMemSlicePitch = 0;
-		engine::globals.device->CreateTexture2D(&desc, &sub_resource, &texture);
+		engine::globals_.device->CreateTexture2D(&desc, &sub_resource, &texture);
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC texture_view_desc;
 		ZeroMemory(&texture_view_desc, sizeof(texture_view_desc));
@@ -52,7 +52,7 @@ namespace renderer
 
 		if (texture != NULL)
 		{
-			engine::globals.device->CreateShaderResourceView(texture, &texture_view_desc, &texture_view);
+			engine::globals_.device->CreateShaderResourceView(texture, &texture_view_desc, &texture_view);
 		}
 
 		texture->Release();
@@ -88,7 +88,7 @@ namespace renderer
 		sub_resource.pSysMem = image_data;
 		sub_resource.SysMemPitch = desc.Width * 4;
 		sub_resource.SysMemSlicePitch = 0;
-		engine::globals.device->CreateTexture2D(&desc, &sub_resource, &texture);
+		engine::globals_.device->CreateTexture2D(&desc, &sub_resource, &texture);
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC texture_view;
 		ZeroMemory(&texture_view, sizeof(texture_view));
@@ -99,7 +99,7 @@ namespace renderer
 
 		if (texture != NULL)
 		{
-			engine::globals.device->CreateShaderResourceView(texture, &texture_view, &image->texture);
+			engine::globals_.device->CreateShaderResourceView(texture, &texture_view, &image->texture);
 		}
 
 		texture->Release();
@@ -118,6 +118,6 @@ namespace renderer
 
 		uieditor::log::print(uieditor::log_message_type::log_normal, "Registered image '%s'", image.name.data());
 		
-		loaded_images.push_back(image);
+		images_.push_back(image);
 	}
 }

@@ -21,7 +21,7 @@ namespace renderer
 
 		static void resize(unsigned int width, unsigned int height);
 
-		static globals_t globals;
+		static globals_t globals_;
 
 	private:
 		static bool create_device(HWND hWnd);
