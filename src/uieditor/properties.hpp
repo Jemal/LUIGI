@@ -10,11 +10,9 @@ namespace uieditor
 		static UIElement* element;
 		static char element_name[32];
 		static char element_text[256];
-		static bool link_width_height;
 
 	private:
 		static float input_fast_step;
-
 
 		static void begin_property(const char* label);
 		
@@ -27,5 +25,8 @@ namespace uieditor
 
 		static void draw_image_properties();
 		static void draw_text_properties();
+
+		static void draw_canvas_properties();
+		static void draw_element_properties();
 	};
 }

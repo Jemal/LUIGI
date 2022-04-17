@@ -23,6 +23,8 @@ namespace uieditor
 	int canvas::click_mode = UIAnchorType::ANCHOR_NONE;
 	int canvas::hover_mode = UIAnchorType::ANCHOR_NONE;
 
+	bool canvas::link_width_height = false;
+
 	ImVec2 canvas::region_min = ImVec2(0.0f, 0.0f);
 	ImVec2 canvas::region_max = ImVec2(0.0f, 0.0f);
 	ImVec2 canvas::size = ImVec2(1280.0f, 720.0f);
@@ -81,7 +83,7 @@ namespace uieditor
 
 	void canvas::draw_grid()
 	{
-		auto color = IM_COL32(20, 255, 50, 75);
+		auto color = IM_COL32(20, 255, 50, 100);
 		auto step = (size.x * zoom_pct) / grid_step;
 
 		for (auto x = fmodf(0.0f, step); x < (size.x * zoom_pct); x += step)
@@ -359,7 +361,7 @@ namespace uieditor
 			delta.x /= zoom_pct;
 			delta.y /= zoom_pct;
 
-			auto keep_current_aspect_ratio = properties::link_width_height;
+			auto keep_current_aspect_ratio = canvas::link_width_height;
 
 			if (click_mode == UIAnchorType::ANCHOR_TOP_LEFT)
 			{
@@ -422,8 +424,26 @@ namespace uieditor
 
 	void canvas::draw()
 	{
-		if (ImGui::Begin("Canvas", nullptr))
+		if (ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_MenuBar))
 		{
+			if (ImGui::BeginMenuBar())
+			{
+				ImGui::Text("Width: %.0f", properties::element->right - properties::element->left);
+
+				ImGui::PushStyleColor(ImGuiCol_Button, link_width_height ? ImGui::GetStyleColorVec4(ImGuiCol_Button) : ImVec4(0, 0, 0, 0));
+
+				if (ImGui::ImageButton(renderer::engine::globals.link_icon, ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 2))
+				{
+					link_width_height = link_width_height == false;
+				}
+
+				ImGui::PopStyleColor();
+
+				ImGui::Text("Height : %.0f", properties::element->bottom - properties::element->top);
+
+				ImGui::EndMenuBar();
+			}
+
 			auto io = &ImGui::GetIO();
 			auto root = lui::core::get_root_element();
 
@@ -521,7 +541,7 @@ namespace uieditor
 			{
 				if (background)
 				{
-					draw_image(background->texture, 0.0f, 0.0f, size_.x, size_.y, 0.0f, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+					draw_image(background->texture, 0.0f, 0.0f, size.x, size.y, 0.0f, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 				}
 			}
 

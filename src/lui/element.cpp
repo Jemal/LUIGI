@@ -378,8 +378,8 @@ namespace lui
 		{
 			element->left = root->currentAnimationState.globalLeft = 0.0f;
 			element->top = root->currentAnimationState.globalTop = 0.0f;
-			element->right = root->currentAnimationState.globalRight = 1280.0f;
-			element->bottom = root->currentAnimationState.globalBottom = 720.0f;
+			element->right = root->currentAnimationState.globalRight = uieditor::canvas::size.x;
+			element->bottom = root->currentAnimationState.globalBottom = uieditor::canvas::size.y;
 		}
 		else
 		{
@@ -623,8 +623,8 @@ namespace lui
 
 					child->currentAnimationState.leftPx = left;
 					child->currentAnimationState.topPx = top;
-					child->currentAnimationState.rightPx = left + 200.0f;
-					child->currentAnimationState.bottomPx = top + 200.0f;
+					child->currentAnimationState.rightPx = left + 75.0f;
+					child->currentAnimationState.bottomPx = top + 75.0f;
 				}
 
 				uieditor::tree::select_element(child);

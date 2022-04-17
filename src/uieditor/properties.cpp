@@ -1,4 +1,5 @@
 #include <stdafx.hpp>
+#include "canvas.hpp"
 #include "tree.hpp"
 #include "log.hpp"
 #include "properties.hpp"
@@ -8,7 +9,6 @@ namespace uieditor
 	UIElement* properties::element = nullptr;
 	char properties::element_name[32] = {};
 	char properties::element_text[256] = {};
-	bool properties::link_width_height = false;
 
 	float properties::input_fast_step = 10.0f;
 
@@ -140,102 +140,110 @@ namespace uieditor
 		}
 	}
 
+	void properties::draw_canvas_properties()
+	{
+		if (input_property("Width:", ImGuiDataType_::ImGuiDataType_Float, &canvas::size.x, 1.0f, input_fast_step))
+		{
+			lui::element::invalidate_layout(element);
+		}
+
+		if (input_property("Height:", ImGuiDataType_::ImGuiDataType_Float, &canvas::size.y, 1.0f, input_fast_step))
+		{
+			lui::element::invalidate_layout(element);
+		}
+	}
+	
+	void properties::draw_element_properties()
+	{
+		if (combo_property("Anchors:", lui::element::anchors_to_string(lui::element::anchors_to_int(element))))
+		{
+			for (auto i = 0; i < UIAnchorType::ANCHOR_COUNT; i++)
+			{
+				if (ImGui::Selectable(lui::element::anchors_to_string(i)))
+				{
+					element->currentAnimationState.leftAnchor = (i & UIAnchorType::ANCHOR_LEFT) != 0;
+					element->currentAnimationState.topAnchor = (i & UIAnchorType::ANCHOR_TOP) != 0;
+					element->currentAnimationState.rightAnchor = (i & UIAnchorType::ANCHOR_RIGHT) != 0;
+					element->currentAnimationState.bottomAnchor = (i & UIAnchorType::ANCHOR_BOTTOM) != 0;
+
+					lui::element::invalidate_layout(element);
+				}
+			}
+
+			ImGui::EndCombo();
+		}
+
+		if (input_property("Left:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.leftPx, 1.0f, input_fast_step))
+		{
+			lui::element::invalidate_layout(element);
+		}
+
+		if (input_property("Right:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.rightPx, 1.0f, input_fast_step))
+		{
+			lui::element::invalidate_layout(element);
+		}
+
+		if (input_property("Top:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.topPx, 1.0f, input_fast_step))
+		{
+			lui::element::invalidate_layout(element);
+		}
+
+		if (input_property("Bottom:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.bottomPx, 1.0f, input_fast_step))
+		{
+			lui::element::invalidate_layout(element);
+		}
+
+		color_property("Color:", &element->currentAnimationState.red);
+
+		slider_property("Alpha:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.alpha, 0.0f, 1.0f);
+
+		if (element->type == UIElementType::UI_IMAGE)
+		{
+			draw_image_properties();
+		}
+		else if (element->type == UIElementType::UI_TEXT)
+		{
+			draw_text_properties();
+		}
+
+		if (input_property("Rotation:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.rotation, 1.0f, input_fast_step))
+		{
+			lui::element::invalidate_layout(element);
+		}
+
+		auto uses_stencil = (element->currentAnimationState.flags & AS_STENCIL) != 0;
+
+		if (bool_property("Stencil", &uses_stencil))
+		{
+			if (uses_stencil)
+			{
+				element->currentAnimationState.flags |= AS_STENCIL;
+			}
+			else
+			{
+				element->currentAnimationState.flags &= ~AS_STENCIL;
+			}
+		}
+	}
+
 	void properties::draw()
 	{
-		if (ImGui::Begin("Properties", 0, ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar))
+		if (ImGui::Begin("Properties"))
 		{
 			if (element != nullptr)
 			{
-				if (ImGui::BeginMenuBar())
-				{
-					ImGui::Text("Width: %.0f", element->right - element->left);
-
-					ImGui::PushStyleColor(ImGuiCol_Button, link_width_height ? ImGui::GetStyleColorVec4(ImGuiCol_Button) : ImVec4(0, 0, 0, 0));
-
-					if (ImGui::ImageButton(renderer::engine::globals.link_icon, ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 2))
-					{
-						link_width_height = link_width_height == false;
-					}
-
-					ImGui::PopStyleColor();
-					
-					ImGui::Text("Height : %.0f", element->bottom - element->top);
-
-					ImGui::EndMenuBar();
-				}
-
 				if (ImGui::BeginTable("label_property", 2, ImGuiTableFlags_NoSavedSettings))
 				{
 					ImGui::TableSetupColumn("##Label", ImGuiTableColumnFlags_WidthFixed, 100);
 
-					if (combo_property("Anchors:", lui::element::anchors_to_string(lui::element::anchors_to_int(element))))
+					auto root = lui::core::get_root_element();
+					if (element == root)
 					{
-						for (auto i = 0; i < UIAnchorType::ANCHOR_COUNT; i++)
-						{
-							if (ImGui::Selectable(lui::element::anchors_to_string(i)))
-							{
-								element->currentAnimationState.leftAnchor = (i & UIAnchorType::ANCHOR_LEFT) != 0;
-								element->currentAnimationState.topAnchor = (i & UIAnchorType::ANCHOR_TOP) != 0;
-								element->currentAnimationState.rightAnchor = (i & UIAnchorType::ANCHOR_RIGHT) != 0;
-								element->currentAnimationState.bottomAnchor = (i & UIAnchorType::ANCHOR_BOTTOM) != 0;
-
-								lui::element::invalidate_layout(element);
-							}
-						}
-
-						ImGui::EndCombo();
+						draw_canvas_properties();
 					}
-
-					if (input_property("Left:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.leftPx, 1.0f, input_fast_step))
+					else
 					{
-						lui::element::invalidate_layout(element);
-					}
-
-					if (input_property("Right:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.rightPx, 1.0f, input_fast_step))
-					{
-						lui::element::invalidate_layout(element);
-					}
-
-					if (input_property("Top:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.topPx, 1.0f, input_fast_step))
-					{
-						lui::element::invalidate_layout(element);
-					}
-
-					if (input_property("Bottom:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.bottomPx, 1.0f, input_fast_step))
-					{
-						lui::element::invalidate_layout(element);
-					}
-
-					color_property("Color:", &element->currentAnimationState.red);
-
-					slider_property("Alpha:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.alpha, 0.0f, 1.0f);
-
-					if (element->type == UIElementType::UI_IMAGE)
-					{
-						draw_image_properties();
-					}
-					else if (element->type == UIElementType::UI_TEXT)
-					{
-						draw_text_properties();
-					}
-
-					if (input_property("Rotation:", ImGuiDataType_::ImGuiDataType_Float, &element->currentAnimationState.rotation, 1.0f, input_fast_step))
-					{
-						lui::element::invalidate_layout(element);
-					}
-
-					auto uses_stencil = (element->currentAnimationState.flags & AS_STENCIL) != 0;
-
-					if (bool_property("Stencil", &uses_stencil))
-					{
-						if (uses_stencil)
-						{
-							element->currentAnimationState.flags |= AS_STENCIL;
-						}
-						else
-						{
-							element->currentAnimationState.flags &= ~AS_STENCIL;
-						}
+						draw_element_properties();
 					}
 
 					ImGui::EndTable();
