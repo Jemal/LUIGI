@@ -37,7 +37,7 @@ namespace uieditor
 
 	void tree::display_element_tree(UIElement* element)
 	{
-		lui::element::context_menu(element);
+		lui::element::context_menu(element, false);
 
 		if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen() && ImGui::IsItemHovered())
 		{

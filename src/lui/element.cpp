@@ -589,7 +589,7 @@ namespace lui
 		uieditor::canvas::draw_text(element->textLeft, element->textTop, red, green, blue, alpha, element->text.data(), element->currentAnimationState.font, element->currentAnimationState.textScale, wrap_width, element->currentAnimationState.alignment);
 	}
 
-	void element::context_menu(UIElement* element)
+	void element::context_menu(UIElement* element, bool from_canvas)
 	{
 		if (ImGui::BeginPopupContextItem(element->id.data()))
 		{
@@ -605,18 +605,27 @@ namespace lui
 				lui::element::create_element();
 
 				auto child = lui::core::element_pool_.at(lui::core::element_pool_.size());
-
+				
 				lui::element::add_element(element, child);
 
-				child->currentAnimationState.topAnchor = true;
-				child->currentAnimationState.leftAnchor = true;
-				child->currentAnimationState.rightAnchor = false;
-				child->currentAnimationState.bottomAnchor = false;
+				// place the element based on where we clicked in the canvas
+				if (from_canvas)
+				{
+					child->currentAnimationState.topAnchor = true;
+					child->currentAnimationState.leftAnchor = true;
+					child->currentAnimationState.rightAnchor = false;
+					child->currentAnimationState.bottomAnchor = false;
 
-				child->currentAnimationState.leftPx = uieditor::canvas::mouse_pos.x;
-				child->currentAnimationState.topPx = uieditor::canvas::mouse_pos.y;
-				child->currentAnimationState.rightPx = uieditor::canvas::mouse_pos.x + 200.0f;
-				child->currentAnimationState.bottomPx = uieditor::canvas::mouse_pos.y + 200.0f;
+					auto left = uieditor::canvas::mouse_pos.x - (element->left * uieditor::canvas::zoom_pct);
+					auto top = uieditor::canvas::mouse_pos.y - (element->top * uieditor::canvas::zoom_pct);
+					
+					//::log::print(0, "%g %g [%g, %g]", left, top, uieditor::canvas::mouse_pos.x, uieditor::canvas::mouse_pos.y);
+
+					child->currentAnimationState.leftPx = left;
+					child->currentAnimationState.topPx = top;
+					child->currentAnimationState.rightPx = left + 200.0f;
+					child->currentAnimationState.bottomPx = top + 200.0f;
+				}
 
 				uieditor::tree::select_element(child);
 

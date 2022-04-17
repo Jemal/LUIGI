@@ -202,7 +202,9 @@ namespace renderer
 	void engine::resize(unsigned int width, unsigned int height)
 	{
 		renderer::engine::cleanup_render_target();
+
 		renderer::engine::globals.swapchain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+
 		renderer::engine::create_render_target();
 	}
 }

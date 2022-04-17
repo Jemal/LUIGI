@@ -7,6 +7,8 @@ namespace uieditor
 	public:
 		static void draw();
 
+		static float zoom_pct;
+
 		static bool show_element_highlight;
 		static bool show_grid;
 		static float grid_step;
@@ -39,5 +41,7 @@ namespace uieditor
 
 		static bool clicked_in_children_bounds(UIElement* element, ImVec2 mouse_pos);
 		static bool clicked_in_element_bounds(UIElement* element, ImVec2 mouse_pos);
+
+		static void handle_element_transform(UIElement* element);
 	};
 }

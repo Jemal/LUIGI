@@ -192,7 +192,7 @@ namespace lui
 
 		static void render(UIElement* element, UIElement* root, float red, float green, float blue, float alpha);
 
-		static void context_menu(UIElement* element);
+		static void context_menu(UIElement* element, bool from_canvas);
 
 	private:
 

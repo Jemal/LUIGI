@@ -7,6 +7,8 @@
 
 namespace uieditor
 {
+	float canvas::zoom_pct = 1.0f;
+
 	bool canvas::show_element_highlight = true;
 	bool canvas::show_background = false;
 	bool canvas::show_grid = false;
@@ -38,6 +40,11 @@ namespace uieditor
 
 	void canvas::draw_image(ID3D11ShaderResourceView* texture, float x, float y, float w, float h, float angle, ImVec4 color)
 	{
+		x *= zoom_pct;
+		y *= zoom_pct;
+		w *= zoom_pct;
+		h *= zoom_pct;
+
 		ImVec2 center((region_min.x + x) + (w / 2), (region_min.y + y) + (h / 2));
 
 		auto radians = static_cast<float>(angle * M_PI / 180.0f);
@@ -75,13 +82,13 @@ namespace uieditor
 	void canvas::draw_grid()
 	{
 		auto color = IM_COL32(20, 255, 50, 75);
-		auto step = size.x / grid_step;
+		auto step = (size.x * zoom_pct) / grid_step;
 
-		for (auto x = fmodf(0.0f, step); x < size.x; x += step)
+		for (auto x = fmodf(0.0f, step); x < (size.x * zoom_pct); x += step)
 		{
 			draw_list->AddLine(ImVec2(region_min.x + x, region_min.y), ImVec2(region_min.x + x, region_max.y), color);
 		}
-		for (auto y = fmodf(0.0f, step); y < size.y; y += step)
+		for (auto y = fmodf(0.0f, step); y < (size.y * zoom_pct); y += step)
 		{
 			draw_list->AddLine(ImVec2(region_min.x, region_min.y + y), ImVec2(region_max.x, region_min.y + y), color);
 		}
@@ -89,15 +96,22 @@ namespace uieditor
 
 	void canvas::highlight_selected_element(UIElement* element)
 	{
-		auto thickness = 2.0f;
+		auto canvas_in_focus = ImGui::IsWindowFocused();
 
-		auto width = element->right - element->left;
-		auto height = element->bottom - element->top;
+		auto thickness = canvas_in_focus ? 2.0f : 1.0f;
 
-		auto element_left = width >= 0.0f ? element->left : element->right;
-		auto element_top = height >= 0.0f ? element->top : element->bottom;
-		auto element_right = width >= 0.0f ? element->right : element->left;
-		auto element_bottom = height >= 0.0f ? element->bottom : element->top;
+		auto scaled_left = element->left * zoom_pct;
+		auto scaled_top = element->top * zoom_pct;
+		auto scaled_right = element->right * zoom_pct;
+		auto scaled_bottom = element->bottom * zoom_pct;
+
+		auto width = scaled_right - scaled_left;
+		auto height = scaled_bottom - scaled_top;
+
+		auto element_left = width >= 0.0f ? scaled_left : scaled_right;
+		auto element_top = height >= 0.0f ? scaled_top : scaled_bottom;
+		auto element_right = width >= 0.0f ? scaled_right : scaled_left;
+		auto element_bottom = height >= 0.0f ? scaled_bottom : scaled_top;
 
 		auto left = region_min.x + element_left - thickness;
 		auto top = region_min.y + element_top - thickness;
@@ -105,10 +119,8 @@ namespace uieditor
 		auto bottom = region_min.y + element_bottom + thickness;
 
 		auto anchor_color = IM_COL32(69, 141, 248, 255);
+		auto hover_color = IM_COL32(69, 141, 248, 50);
 		auto white_color = IM_COL32(244, 244, 244, 255);
-		auto hover_color = IM_COL32(244, 244, 244, 50);
-
-		auto canvas_in_focus = ImGui::IsWindowFocused();
 
 		if (canvas_in_focus)
 		{
@@ -196,74 +208,21 @@ namespace uieditor
 		}
 	}
 
-	bool canvas::clicked_in_children_bounds(UIElement* element, ImVec2 mouse_pos)
-	{
-		auto child = element->lastChild;
-		while (child)
-		{
-			auto child_width = child->right - child->left;
-			auto child_height = child->bottom - child->top;
-
-			auto in_child_bounds_x = child_width >= 0.0f ? mouse_pos.x >= child->left && mouse_pos.x <= child->right : mouse_pos.x >= child->right && mouse_pos.x <= child->left;
-			auto in_child_bounds_y = child_height >= 0.0f ? mouse_pos.y >= child->top && mouse_pos.y <= child->bottom : mouse_pos.y >= child->bottom && mouse_pos.y <= child->top;
-
-			if (in_child_bounds_x && in_child_bounds_y)
-			{
-				auto child_anchor_int = lui::element::anchors_to_int(child);
-				auto has_valid_parent = child->parent != nullptr && child->parent != lui::core::get_root_element();
-
-				properties::element = child;
-
-				clicked_in_element_bounds(child, mouse_pos);
-
-				return true;
-			}
-
-			if (child->prevSibling == NULL)
-			{
-				child = child->lastChild;
-			}
-			else
-			{
-				child = child->prevSibling;
-			}
-		}
-
-		return false;
-	}
-
-	bool canvas::clicked_in_element_bounds(UIElement* element, ImVec2 mouse_pos)
-	{
-		auto in_bounds_x = mouse_pos.x >= element->left && mouse_pos.x <= element->right;
-		auto in_bounds_y = mouse_pos.y >= element->top && mouse_pos.y <= element->bottom;
-
-		auto in_child_bounds = false;
-
-		if (in_bounds_x && in_bounds_y)
-		{
-			if (element->firstChild != nullptr)
-			{
-				in_child_bounds = clicked_in_children_bounds(element, mouse_pos);
-			}
-			else
-			{
-				in_child_bounds = true;
-			}
-
-		}
-
-		return in_child_bounds;
-	}
-
 	void canvas::update_mode_for_anchors(int* mode, UIElement* element, ImVec2 mouse_pos)
 	{
-		auto width = element->right - element->left;
-		auto height = element->bottom - element->top;
+		auto scaled_left = element->left * zoom_pct;
+		auto scaled_top = element->top * zoom_pct;
+		auto scaled_right = element->right * zoom_pct;
+		auto scaled_bottom = element->bottom * zoom_pct;
 
-		auto left = width >= 0.0f ? element->left : element->right;
-		auto top = height >= 0.0f ? element->top : element->bottom;
-		auto right = width >= 0.0f ? element->right : element->left;
-		auto bottom = height >= 0.0f ? element->bottom : element->top;
+		auto width = scaled_right - scaled_left;
+		auto height = scaled_bottom - scaled_top;
+
+		// check if we flipped the our element
+		auto left = width >= 0.0f ? scaled_left : scaled_right;
+		auto top = height >= 0.0f ? scaled_top : scaled_bottom;
+		auto right = width >= 0.0f ? scaled_right : scaled_left;
+		auto bottom = height >= 0.0f ? scaled_bottom : scaled_top;
 
 		auto middle_x = left + ((right - left) / 2.0f);
 		auto middle_y = top + ((bottom - top) / 2.0f);
@@ -316,32 +275,184 @@ namespace uieditor
 		}
 	}
 
+	bool canvas::clicked_in_children_bounds(UIElement* element, ImVec2 mouse_pos)
+	{
+		auto child = element->lastChild;
+		while (child)
+		{
+			auto scaled_left = child->left * zoom_pct;
+			auto scaled_top = child->top * zoom_pct;
+			auto scaled_right = child->right * zoom_pct;
+			auto scaled_bottom = child->bottom * zoom_pct;
+
+			auto child_width = scaled_right - scaled_left;
+			auto child_height = scaled_bottom - scaled_top;
+
+			auto in_child_bounds_x = child_width >= 0.0f ? mouse_pos.x >= scaled_left && mouse_pos.x <= scaled_right : mouse_pos.x >= scaled_right && mouse_pos.x <= scaled_left;
+			auto in_child_bounds_y = child_height >= 0.0f ? mouse_pos.y >= scaled_top && mouse_pos.y <= scaled_bottom : mouse_pos.y >= scaled_bottom && mouse_pos.y <= scaled_top;
+
+			if (in_child_bounds_x && in_child_bounds_y)
+			{
+				properties::element = child;
+
+				clicked_in_element_bounds(child, mouse_pos);
+
+				return true;
+			}
+
+			if (child->prevSibling == NULL)
+			{
+				child = child->lastChild;
+			}
+			else
+			{
+				child = child->prevSibling;
+			}
+		}
+
+		return false;
+	}
+
+	bool canvas::clicked_in_element_bounds(UIElement* element, ImVec2 mouse_pos)
+	{
+		auto scaled_left = element->left * zoom_pct;
+		auto scaled_top = element->top * zoom_pct;
+		auto scaled_right = element->right * zoom_pct;
+		auto scaled_bottom = element->bottom * zoom_pct;
+
+		auto in_bounds_x = mouse_pos.x >= scaled_left && mouse_pos.x <= scaled_right;
+		auto in_bounds_y = mouse_pos.y >= scaled_top && mouse_pos.y <= scaled_bottom;
+
+		auto in_child_bounds = false;
+
+		if (in_bounds_x && in_bounds_y)
+		{
+			in_child_bounds = element->firstChild != nullptr ? clicked_in_children_bounds(element, mouse_pos) : true;
+
+			// if we didnt click within a child then just select the parent
+			if (!in_child_bounds)
+			{
+				properties::element = element;
+
+				return true;
+			}
+		}
+
+		return in_child_bounds;
+	}
+
+	void canvas::handle_element_transform(UIElement* element)
+	{
+		auto io = &ImGui::GetIO();
+
+		hover_mode = click_mode;
+
+		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left, 10.0f))
+		{
+			auto delta = io->MouseDelta;
+			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+			{
+				delta.x /= 2.0f;
+				delta.y /= 2.0f;
+			}
+
+			delta.x /= zoom_pct;
+			delta.y /= zoom_pct;
+
+			auto keep_current_aspect_ratio = properties::link_width_height;
+
+			if (click_mode == UIAnchorType::ANCHOR_TOP_LEFT)
+			{
+				properties::element->currentAnimationState.leftPx += delta.x;
+				properties::element->currentAnimationState.topPx += delta.y;
+			}
+			else if (click_mode == UIAnchorType::ANCHOR_TOP_RIGHT)
+			{
+				properties::element->currentAnimationState.rightPx += delta.x;
+				properties::element->currentAnimationState.topPx += delta.y;
+			}
+			else if (click_mode == UIAnchorType::ANCHOR_TOP)
+			{
+				properties::element->currentAnimationState.topPx += delta.y;
+			}
+			else if (click_mode == UIAnchorType::ANCHOR_BOTTOM_LEFT)
+			{
+				properties::element->currentAnimationState.leftPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.x;
+				properties::element->currentAnimationState.bottomPx += keep_current_aspect_ratio ? ((delta.x + delta.y) / 2.0f) : delta.y;
+			}
+			else if (click_mode == UIAnchorType::ANCHOR_BOTTOM_RIGHT)
+			{
+				properties::element->currentAnimationState.rightPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.x;
+				properties::element->currentAnimationState.bottomPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.y;
+			}
+			else if (click_mode == UIAnchorType::ANCHOR_BOTTOM)
+			{
+				properties::element->currentAnimationState.bottomPx += delta.y;
+			}
+			else if (click_mode == UIAnchorType::ANCHOR_LEFT)
+			{
+				properties::element->currentAnimationState.leftPx += delta.x;
+			}
+			else if (click_mode == UIAnchorType::ANCHOR_RIGHT)
+			{
+				properties::element->currentAnimationState.rightPx += delta.x;
+			}
+			else
+			{
+				properties::element->currentAnimationState.leftPx += delta.x;
+				properties::element->currentAnimationState.rightPx += delta.x;
+				properties::element->currentAnimationState.topPx += delta.y;
+				properties::element->currentAnimationState.bottomPx += delta.y;
+			}
+		}
+		else
+		{
+			auto wheel = io->MouseWheel;
+			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+			{
+				wheel *= 5.0f;
+			}
+
+			properties::element->currentAnimationState.topPx -= wheel;
+			properties::element->currentAnimationState.bottomPx += wheel;
+		}
+
+		lui::element::invalidate_layout(properties::element);
+	}
+
 	void canvas::draw()
 	{
-		ImGui::SetNextWindowSize(ImVec2(size.x + 15.0f, size.y + 30.0f), ImGuiCond_::ImGuiCond_Always);
-
-		if (ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar))
+		if (ImGui::Begin("Canvas", nullptr))
 		{
 			auto io = &ImGui::GetIO();
 			auto root = lui::core::get_root_element();
-			auto is_element_root = properties::element == root;
 
 			auto content_region_min = ImGui::GetWindowContentRegionMin();
 			content_region_min.x += ImGui::GetWindowPos().x;
 			content_region_min.y += ImGui::GetWindowPos().y;
-			
+
 			auto content_region_max = ImGui::GetWindowContentRegionMax();
 			content_region_max.x += ImGui::GetWindowPos().x;
 			content_region_max.y += ImGui::GetWindowPos().y;
 
-			auto canvas_window_size = ImVec2(content_region_max.x - content_region_min.x, content_region_max.y - content_region_min.y);
+			auto size_ = ImVec2(size.x * zoom_pct, size.y * zoom_pct);
+
+			auto canvas_window_size = ImVec2((content_region_max.x - content_region_min.x), (content_region_max.y - content_region_min.y));
 			auto cursor_screen_pos = ImGui::GetCursorScreenPos();
 
-			region_min = ImVec2(cursor_screen_pos.x + ((canvas_window_size.x - size.x) / 2.0f), cursor_screen_pos.y + ((canvas_window_size.y - size.y) / 2.0f));
-			region_max = ImVec2(region_min.x + size.x, region_min.y + size.y);
+			region_min = ImVec2(cursor_screen_pos.x + ((canvas_window_size.x - size_.x) / 2.0f), cursor_screen_pos.y + ((canvas_window_size.y - size_.y) / 2.0f));
+			region_max = ImVec2(region_min.x + size_.x, region_min.y + size_.y);
 
-			// This will catch our interactions
-			ImGui::InvisibleButton("canvas", size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+			// the implementation of zooming the canvas is super messy
+			// everything works fine currently but you cant scroll the canvas if zoom > 100%
+			auto button_size = ImVec2(content_region_max.x - content_region_min.x, content_region_max.y - content_region_min.y);
+			if (button_size.y <= 0.0f)
+			{
+				button_size.y = 1.0f;
+			}
+
+			ImGui::InvisibleButton("canvas", button_size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+			ImGui::SetItemUsingMouseWheel();
 
 			auto is_hovered = ImGui::IsItemHovered();
 			auto is_active = ImGui::IsItemActive();
@@ -349,10 +460,17 @@ namespace uieditor
 
 			draw_list = ImGui::GetWindowDrawList();
 
-			lui::element::context_menu(properties::element);
+			lui::element::context_menu(properties::element, true);
 
 			if (is_hovered)
 			{
+				auto wheel = ImGui::GetIO().MouseWheel;
+				if (wheel)
+				{
+					zoom_pct += wheel * 0.05f;
+					zoom_pct = std::clamp(zoom_pct, 0.25f, 2.0f);
+				}
+
 				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
 					clicked_in_element = clicked_in_element_bounds(root, mouse_pos);
@@ -370,86 +488,7 @@ namespace uieditor
 
 				update_mode_for_anchors(&hover_mode, properties::element, mouse_pos);
 			}
-
-			if (is_active && clicked_in_element)
-			{
-				// dont want to move/resize root
-				if (!is_element_root)
-				{
-					hover_mode = click_mode;
-
-					if (ImGui::IsMouseDragging(ImGuiMouseButton_Left, 10.0f))
-					{
-						auto delta = io->MouseDelta;
-						if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
-						{
-							delta.x /= 2.0f;
-							delta.y /= 2.0f;
-						}
-
-						auto keep_current_aspect_ratio = properties::link_width_height;
-
-						if (click_mode == UIAnchorType::ANCHOR_TOP_LEFT)
-						{
-							properties::element->currentAnimationState.leftPx += delta.x;
-							properties::element->currentAnimationState.topPx += delta.y;
-						}
-						else if (click_mode == UIAnchorType::ANCHOR_TOP_RIGHT)
-						{
-							properties::element->currentAnimationState.rightPx += delta.x;
-							properties::element->currentAnimationState.topPx += delta.y;
-						}
-						else if (click_mode == UIAnchorType::ANCHOR_TOP)
-						{
-							properties::element->currentAnimationState.topPx += delta.y;
-						}
-						else if (click_mode == UIAnchorType::ANCHOR_BOTTOM_LEFT)
-						{
-							properties::element->currentAnimationState.leftPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.x;
-							properties::element->currentAnimationState.bottomPx += keep_current_aspect_ratio ? ((delta.x + delta.y) / 2.0f) : delta.y;
-						}
-						else if (click_mode == UIAnchorType::ANCHOR_BOTTOM_RIGHT)
-						{
-							properties::element->currentAnimationState.rightPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.x;
-							properties::element->currentAnimationState.bottomPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.y;
-						}
-						else if (click_mode == UIAnchorType::ANCHOR_BOTTOM)
-						{
-							properties::element->currentAnimationState.bottomPx += delta.y;
-						}
-						else if (click_mode == UIAnchorType::ANCHOR_LEFT)
-						{
-							properties::element->currentAnimationState.leftPx += delta.x;
-						}
-						else if (click_mode == UIAnchorType::ANCHOR_RIGHT)
-						{
-							properties::element->currentAnimationState.rightPx += delta.x;
-						}
-						else
-						{
-							properties::element->currentAnimationState.leftPx += delta.x;
-							properties::element->currentAnimationState.rightPx += delta.x;
-							properties::element->currentAnimationState.topPx += delta.y;
-							properties::element->currentAnimationState.bottomPx += delta.y;
-						}
-					}
-					else
-					{
-						auto wheel = io->MouseWheel;
-						if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
-						{
-							wheel *= 5.0f;
-						}
-
-						properties::element->currentAnimationState.topPx -= wheel;
-						properties::element->currentAnimationState.bottomPx += wheel;
-					}
-
-					lui::element::invalidate_layout(properties::element);
-				}
-			}
-
-			if (!is_hovered)
+			else
 			{
 				clicked_in_element = false;
 
@@ -457,11 +496,23 @@ namespace uieditor
 				hover_mode = UIAnchorType::ANCHOR_NONE;
 			}
 
-			// Draw border and background color
+			auto is_element_root = properties::element == root;
+
+			if (is_active)
 			{
-				draw_list->AddRectFilled(region_min, region_max, IM_COL32(20, 20, 20, 255));
-				draw_list->AddRect(ImVec2(region_min.x - 1, region_min.y - 1), ImVec2(region_max.x + 1, region_max.y + 1), IM_COL32(255, 255, 255, 100));
+				if (clicked_in_element)
+				{
+					// dont want to move/resize root
+					if (!is_element_root)
+					{
+						handle_element_transform(properties::element);
+					}
+				}
 			}
+
+			// Draw border and background color
+			draw_list->AddRectFilled(region_min, region_max, IM_COL32(20, 20, 20, 255));
+			draw_list->AddRect(ImVec2(region_min.x - 1, region_min.y - 1), ImVec2(region_max.x + 1, region_max.y + 1), IM_COL32(255, 255, 255, 100));
 
 			// keep everything drawn inside the canvas
 			draw_list->PushClipRect(region_min, region_max, true);
@@ -470,24 +521,36 @@ namespace uieditor
 			{
 				if (background)
 				{
-					draw_image(background->texture, 0.0f, 0.0f, size.x, size.y, 0.0f, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+					draw_image(background->texture, 0.0f, 0.0f, size_.x, size_.y, 0.0f, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 				}
 			}
 
 			// layout and render our elements
 			lui::core::frame();
 
-			if (!is_element_root)
-			{
-				highlight_selected_element(properties::element);
-			}
-
 			if (show_grid)
 			{
 				draw_grid();
 			}
 
+			// remove canvas clip
 			draw_list->PopClipRect();
+
+			if (!is_element_root)
+			{
+				highlight_selected_element(properties::element);
+			}
+
+			// draw zoom pct
+			{
+				auto font = &renderer::font::loaded_fonts.at(0);
+
+				auto x = cursor_screen_pos.x;
+				auto y = content_region_max.y - font->handle->FontSize;
+				auto zoom = utils::string::va("Zoom: %g%%", zoom_pct * 100.0f);
+
+				draw_list->AddText(font->handle, font->handle->FontSize, ImVec2(x, y), IM_COL32(255, 255, 255, 255), zoom);
+			}
 		}
 
 		ImGui::End();
