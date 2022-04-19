@@ -109,8 +109,6 @@ struct UIAnimationState
 
 	renderer::image_t* image;
 	renderer::font_t* font;
-
-	float textScale;
 };
 
 struct UIElement
@@ -180,7 +178,7 @@ namespace lui
 		static const char* anchors_to_string(int anchor_value);
 
 		static void calculate_global_rectangle(UIElement* element, UIAnimationState* animation_state);
-		static void get_text_dimensions(UIElement* root, const char* text, renderer::font_t* font, float font_height, float font_scale, float* left, float* top, float* right, float* bottom, float wrap_width);
+		static void get_text_dimensions(UIElement* root, const char* text, renderer::font_t* font, float font_height, float* left, float* top, float* right, float* bottom, float wrap_width);
 		static void set_dimensions(UIElement* element, UIElement* root);
 
 		static void default_layout(UIElement* element, UIElement* root, int delta_game_time, int delta_system_time);

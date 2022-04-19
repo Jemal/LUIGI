@@ -132,11 +132,6 @@ namespace uieditor
 			ImGui::EndCombo();
 		}
 
-		if (slider_property("Font Scale:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.textScale, 0.0f, 1.0f))
-		{
-			lui::element::invalidate_layout(element_);
-		}
-
 		text_property("Text:", element_text_, IM_ARRAYSIZE(element_text_));
 
 		if (element_->text.data() != element_text_)

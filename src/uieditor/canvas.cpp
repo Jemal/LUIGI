@@ -69,26 +69,20 @@ namespace uieditor
 		draw_list_->AddImageQuad(texture, pos[0], pos[1], pos[2], pos[3], uvs[0], uvs[1], uvs[2], uvs[3], ImGui::GetColorU32(color));
 	}
 
-	void canvas::draw_text(float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float scale, float wrap_width, int alignment)
+	void canvas::draw_text(float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float wrap_width, int alignment)
 	{
 		x *= zoom_pct_;
 		y *= zoom_pct_;
-		scale *= zoom_pct_;
 		wrap_width *= zoom_pct_;
 
 		auto color = ImGui::GetColorU32(ImVec4(red, green, blue, alpha));
 
-		auto dist = ((font_height - font->handle->Ascent) / 2.0f);
-		auto size = (font_height - font->handle->FallbackAdvanceX) * scale;
+		auto font_scale = font_height / font->size;
 
-		//auto descent = (-font->handle->Descent + 1) * 2.0f;
-		//auto descent = font->handle->FallbackAdvanceX + ((-font->handle->Descent + 1));
-		//auto descent = (font->handle->FallbackAdvanceX + ((-font->handle->Descent + 1) * 2.0f)) / 2.0f; // 17.0f
-		auto descent = font->handle->Ascent - ((-font->handle->Descent) / 2.0f); // really close
+		auto size = font->handle->Ascent * font_scale;
+		auto dist = (font->size - font->handle->Ascent) * font_scale;
 
-		auto bruhbruhbruh = font_height - (font->size + (descent * 2.0f));
-
-		draw_list_->AddText(font->handle, bruhbruhbruh, ImVec2(region_.x + x, region_.y + (y - bruhbruhbruh)), color, text, 0, wrap_width);
+		draw_list_->AddText(font->handle, size, ImVec2((region_.x + x) - font_scale, (region_.y + y) - size), color, text, 0, wrap_width);
 	}
 
 	void canvas::draw_grid()

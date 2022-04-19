@@ -351,26 +351,11 @@ namespace lui
 		}
 	}
 
-	float get_text_width(const char* text, renderer::font_t* font, float font_height, float font_scale, float wrap_width)
+	void element::get_text_dimensions(UIElement* root, const char* text, renderer::font_t* font, float font_height, float* left, float* top, float* right, float* bottom, float wrap_width)
 	{
-		if (text == NULL)
-		{
-			return 0.0f;
-		}
+		auto scale = 1.0f;
 
-		auto text_size = font->handle->CalcTextSizeA(font->handle->FallbackAdvanceX, FLT_MAX, wrap_width, text, NULL, NULL);
-		
-		// round
-		text_size.x = ((float)(int)(text_size.x + 0.99999f));
-
-		return text_size.x;
-	}
-
-	void element::get_text_dimensions(UIElement* root, const char* text, renderer::font_t* font, float font_height, float font_scale, float* left, float* top, float* right, float* bottom, float wrap_width)
-	{
-		auto scale = 1.0f * font_scale;
-
-		auto text_width = get_text_width(text, font, font_height, scale, wrap_width);
+		auto text_width = renderer::font::get_text_size(text, font, font_height, wrap_width).x;
 
 		*left = 0.0f;
 		*top = font_height;
@@ -418,8 +403,7 @@ namespace lui
 				get_text_dimensions(root,
 					text.data(), 
 					element->currentAnimationState.font,
-					element->currentAnimationState.globalBottom - element->currentAnimationState.globalTop,
-					element->currentAnimationState.textScale, 
+					element->currentAnimationState.globalBottom - element->currentAnimationState.globalTop, 
 					&element->textDimLeft,
 					&element->textDimTop,
 					&element->textDimRight,
@@ -450,7 +434,7 @@ namespace lui
 					}
 					else if (element->currentAnimationState.topPct == 0.0f)
 					{
-						element->textTop = element->top - (element->textDimTop * unitsToPixels);
+						element->textTop = element->top + (element->textDimTop * unitsToPixels);
 					}
 					else
 					{
@@ -614,7 +598,7 @@ namespace lui
 
 		auto font_height = element->bottom - element->top;
 
-		uieditor::canvas::draw_text(element->textLeft, element->textTop, red, green, blue, alpha, element->text.data(), element->currentAnimationState.font, font_height, element->currentAnimationState.textScale, wrap_width, element->currentAnimationState.alignment);
+		uieditor::canvas::draw_text(element->textLeft, element->textTop, red, green, blue, alpha, element->text.data(), element->currentAnimationState.font, font_height, wrap_width, element->currentAnimationState.alignment);
 	}
 
 	void element::context_menu(UIElement* element, bool from_canvas)

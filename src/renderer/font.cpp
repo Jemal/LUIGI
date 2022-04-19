@@ -9,6 +9,24 @@ namespace renderer
 	std::string font::default_font;
 	std::vector<font_t> font::fonts_;
 
+	ImVec2 font::get_text_size(const char* text, renderer::font_t* font, float font_height, float wrap_width)
+	{
+		if (text == NULL)
+		{
+			return ImVec2(0.0f, 0.0f);
+		}
+
+		auto font_scale__ = font_height / font->size;
+		auto size = font->handle->Ascent * font_scale__;
+
+		auto text_size = font->handle->CalcTextSizeA(size, FLT_MAX, wrap_width, text, NULL, NULL);
+
+		// round
+		text_size.x = ((float)(int)(text_size.x + 0.99999f));
+
+		return text_size;
+	}
+
 	void font::register_default_font()
 	{
 		font_t font;
@@ -25,9 +43,9 @@ namespace renderer
 
 				ImFontConfig cfg;
 				cfg.SizePixels = font.size;
-				cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+				//cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 
-				font.handle = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(default_font.data(), default_font.size(), 16.0f, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+				font.handle = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(default_font.data(), default_font.size(), 16.0f, &cfg);
 			}
 		}
 
@@ -49,9 +67,9 @@ namespace renderer
 
 		ImFontConfig cfg;
 		cfg.SizePixels = size;
-		cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+		cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_NoHinting;
 
-		font.handle = ImGui::GetIO().Fonts->AddFontFromFileTTF(filepath, size, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+		font.handle = ImGui::GetIO().Fonts->AddFontFromFileTTF(filepath, size, &cfg);
 
 		uieditor::log::print(uieditor::log_normal, "Registered font '%s'", font.name.data());
 

@@ -86,9 +86,10 @@ namespace uieditor
 					else if (i == UIElementType::UI_TEXT)
 					{
 						element->currentAnimationState.font = &renderer::font::fonts_.at(0);
-						element->currentAnimationState.textScale = 1.0f;
 
 						element->renderFunction = lui::element::ui_text_render;
+
+						strcpy(properties::element_text_, "UIText");
 					}
 					else
 					{
