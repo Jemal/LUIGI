@@ -48,12 +48,12 @@ namespace renderer
 		font.size = size;
 
 		ImFontConfig cfg;
-		cfg.SizePixels = font.size;
+		cfg.SizePixels = size;
 		cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 
-		font.handle = ImGui::GetIO().Fonts->AddFontFromFileTTF(filepath, font.size, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+		font.handle = ImGui::GetIO().Fonts->AddFontFromFileTTF(filepath, size, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
 
-		uieditor::log::print(uieditor::log_message_type::log_normal, "Registered font '%s'", font.name.data());
+		uieditor::log::print(uieditor::log_normal, "Registered font '%s'", font.name.data());
 
 		fonts_.push_back(font);
 	}

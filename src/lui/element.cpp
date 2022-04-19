@@ -351,14 +351,29 @@ namespace lui
 		}
 	}
 
-	void element::get_text_dimensions(UIElement* root, const char* text, renderer::font_t* font, float font_scale, float* left, float* top, float* right, float* bottom, float wrap_width)
+	float get_text_width(const char* text, renderer::font_t* font, float font_height, float font_scale, float wrap_width)
 	{
-		auto scale = 1.0f;
+		if (text == NULL)
+		{
+			return 0.0f;
+		}
 
-		auto text_width = ImGui::CalcTextSize(text, 0, false, wrap_width).x * scale;
+		auto text_size = font->handle->CalcTextSizeA(font->handle->FallbackAdvanceX, FLT_MAX, wrap_width, text, NULL, NULL);
+		
+		// round
+		text_size.x = ((float)(int)(text_size.x + 0.99999f));
+
+		return text_size.x;
+	}
+
+	void element::get_text_dimensions(UIElement* root, const char* text, renderer::font_t* font, float font_height, float font_scale, float* left, float* top, float* right, float* bottom, float wrap_width)
+	{
+		auto scale = 1.0f * font_scale;
+
+		auto text_width = get_text_width(text, font, font_height, scale, wrap_width);
 
 		*left = 0.0f;
-		*top = font->size;
+		*top = font_height;
 
 		if (wrap_width >= 0.0f)
 		{
@@ -398,21 +413,32 @@ namespace lui
 					wrap_width = element->currentAnimationState.globalRight - element->currentAnimationState.globalLeft;
 				}
 
-				get_text_dimensions(root, text.data(), element->currentAnimationState.font, element->currentAnimationState.textScale, &element->textDimLeft, &element->textDimTop, &element->textDimRight, &element->textDimBottom, wrap_width);
+				auto unitsToPixels = 1.0f;
+
+				get_text_dimensions(root,
+					text.data(), 
+					element->currentAnimationState.font,
+					element->currentAnimationState.globalBottom - element->currentAnimationState.globalTop,
+					element->currentAnimationState.textScale, 
+					&element->textDimLeft,
+					&element->textDimTop,
+					&element->textDimRight,
+					&element->textDimBottom,
+					wrap_width);
 
 				if ((element->currentAnimationState.flags & AS_LEFT_PT) != 0)
 				{
 					if (element->currentAnimationState.leftPct != element->currentAnimationState.rightPct || element->currentAnimationState.leftPct == 0.5f)
 					{
-						element->textLeft = ((element->left + element->right) / 2.0f) - ((element->textDimRight - element->textDimLeft) / 2.0f);
+						element->textLeft = ((element->left + element->right) / 2.0f) - (((element->textDimRight - element->textDimLeft) * unitsToPixels) / 2.0f);
 					}
 					else if (element->currentAnimationState.leftPct == 0.0f)
 					{
-						element->textLeft = element->left - element->textDimLeft;
+						element->textLeft = element->left - (element->textDimLeft * unitsToPixels);
 					}
 					else
 					{
-						element->textLeft = element->right - element->textDimRight;
+						element->textLeft = element->right - (element->textDimRight * unitsToPixels);
 					}
 				}
 
@@ -420,11 +446,11 @@ namespace lui
 				{
 					if (element->currentAnimationState.topPct == element->currentAnimationState.bottomPct)
 					{
-						element->textTop = ((element->top + element->bottom) / 2.0f) - ((element->textDimBottom - element->textDimTop) / 2.0f);
+						element->textTop = ((element->top + element->bottom) / 2.0f) - (((element->textDimBottom - element->textDimTop) * unitsToPixels) / 2.0f);
 					}
 					else if (element->currentAnimationState.topPct == 0.0f)
 					{
-						element->textTop = element->top - element->textDimTop;
+						element->textTop = element->top - (element->textDimTop * unitsToPixels);
 					}
 					else
 					{
@@ -586,7 +612,9 @@ namespace lui
 			wrap_width = element->right - element->left;
 		}
 
-		uieditor::canvas::draw_text(element->textLeft, element->textTop, red, green, blue, alpha, element->text.data(), element->currentAnimationState.font, element->currentAnimationState.textScale, wrap_width, element->currentAnimationState.alignment);
+		auto font_height = element->bottom - element->top;
+
+		uieditor::canvas::draw_text(element->textLeft, element->textTop, red, green, blue, alpha, element->text.data(), element->currentAnimationState.font, font_height, element->currentAnimationState.textScale, wrap_width, element->currentAnimationState.alignment);
 	}
 
 	void element::context_menu(UIElement* element, bool from_canvas)

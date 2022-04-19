@@ -119,8 +119,7 @@ namespace renderer
 		auto* io = &ImGui::GetIO();
 
 		io->IniFilename = "uieditor\\config.ini";
-
-		io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io->ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 
 		ImGui::StyleUIE();
 
@@ -194,6 +193,9 @@ namespace renderer
 			globals_.device_context->ClearRenderTargetView(globals_.render_target_view, clear_color_with_alpha);
 
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
 
 			globals_.swapchain->Present(1, 0); // Present with vsync
 		}

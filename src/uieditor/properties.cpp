@@ -117,6 +117,8 @@ namespace uieditor
 					selected_font = i;
 
 					element_->currentAnimationState.font = font;
+
+					lui::element::invalidate_layout(element_);
 				}
 
 				if (is_selected)
@@ -130,13 +132,18 @@ namespace uieditor
 			ImGui::EndCombo();
 		}
 
-		slider_property("Font Scale:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.textScale, 0.0f, 1.0f);
+		if (slider_property("Font Scale:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.textScale, 0.0f, 1.0f))
+		{
+			lui::element::invalidate_layout(element_);
+		}
 
 		text_property("Text:", element_text_, IM_ARRAYSIZE(element_text_));
 
 		if (element_->text.data() != element_text_)
 		{
 			element_->text = element_text_;
+
+			lui::element::invalidate_layout(element_);
 		}
 	}
 
@@ -249,7 +256,6 @@ namespace uieditor
 					ImGui::EndTable();
 				}
 			}
-
 		}
 
 		ImGui::End();

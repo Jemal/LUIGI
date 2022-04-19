@@ -14,9 +14,12 @@ namespace uieditor
 	ImDrawList* canvas::draw_list_ = nullptr;
 
 	bool canvas::clicked_in_element_ = false;
+	bool canvas::hovering_element_ = false;
 
 	int canvas::click_mode_ = UIAnchorType::ANCHOR_NONE;
 	int canvas::hover_mode_ = UIAnchorType::ANCHOR_NONE;
+
+	UIElement* canvas::hovered_element_ = nullptr;
 
 	bool canvas::link_width_height_ = false;
 
@@ -66,13 +69,26 @@ namespace uieditor
 		draw_list_->AddImageQuad(texture, pos[0], pos[1], pos[2], pos[3], uvs[0], uvs[1], uvs[2], uvs[3], ImGui::GetColorU32(color));
 	}
 
-	void canvas::draw_text(float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float scale, float wrap_width, int alignment)
+	void canvas::draw_text(float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float scale, float wrap_width, int alignment)
 	{
+		x *= zoom_pct_;
+		y *= zoom_pct_;
+		scale *= zoom_pct_;
+		wrap_width *= zoom_pct_;
+
 		auto color = ImGui::GetColorU32(ImVec4(red, green, blue, alpha));
 
-		auto size = font->handle->FontSize * scale;
+		auto dist = ((font_height - font->handle->Ascent) / 2.0f);
+		auto size = (font_height - font->handle->FallbackAdvanceX) * scale;
 
-		draw_list_->AddText(font->handle, font->handle->FontSize * scale, ImVec2(region_.x + x, region_.y + (y - size)), color, text, 0, wrap_width);
+		//auto descent = (-font->handle->Descent + 1) * 2.0f;
+		//auto descent = font->handle->FallbackAdvanceX + ((-font->handle->Descent + 1));
+		//auto descent = (font->handle->FallbackAdvanceX + ((-font->handle->Descent + 1) * 2.0f)) / 2.0f; // 17.0f
+		auto descent = font->handle->Ascent - ((-font->handle->Descent) / 2.0f); // really close
+
+		auto bruhbruhbruh = font_height - (font->size + (descent * 2.0f));
+
+		draw_list_->AddText(font->handle, bruhbruhbruh, ImVec2(region_.x + x, region_.y + (y - bruhbruhbruh)), color, text, 0, wrap_width);
 	}
 
 	void canvas::draw_grid()
@@ -90,11 +106,9 @@ namespace uieditor
 		}
 	}
 
-	void canvas::highlight_selected_element(UIElement* element)
+	void canvas::highlight_selected_element(UIElement* element, bool hovered)
 	{
-		auto canvas_in_focus = ImGui::IsWindowFocused();
-
-		auto thickness = canvas_in_focus ? 2.0f : 1.0f;
+		auto thickness = 1.0f;
 
 		auto scaled_left = element->left * zoom_pct_;
 		auto scaled_top = element->top * zoom_pct_;
@@ -109,16 +123,16 @@ namespace uieditor
 		auto element_right = width >= 0.0f ? scaled_right : scaled_left;
 		auto element_bottom = height >= 0.0f ? scaled_bottom : scaled_top;
 
-		auto left = region_.x + element_left - thickness;
-		auto top = region_.y + element_top - thickness;
-		auto right = region_.x + element_right + thickness;
-		auto bottom = region_.y + element_bottom + thickness;
+		auto left = region_.x + element_left;
+		auto top = region_.y + element_top;
+		auto right = region_.x + element_right;
+		auto bottom = region_.y + element_bottom;
 
-		auto anchor_color = IM_COL32(69, 141, 248, 255);
-		auto hover_color = IM_COL32(69, 141, 248, 50);
+		auto anchor_color = IM_COL32(69, 141, 248, 50);
+		auto hover_color = hovered ? IM_COL32(248, 141, 69, 255) : IM_COL32(69, 141, 248, 255);
 		auto white_color = IM_COL32(244, 244, 244, 255);
 
-		if (canvas_in_focus)
+		if (!hovered)
 		{
 			if (hover_mode_ == UIAnchorType::ANCHOR_NONE)
 			{
@@ -127,81 +141,47 @@ namespace uieditor
 			else if (hover_mode_ == UIAnchorType::ANCHOR_TOP_LEFT)
 			{
 				::SetCursor(::LoadCursor(NULL, IDC_SIZENWSE));
-				draw_list_->AddTriangleFilled(ImVec2(left, top), ImVec2(left + 20.0f, top), ImVec2(left, top + 20.f), hover_color);
+				draw_list_->AddTriangleFilled(ImVec2(left, top), ImVec2(left + 20.0f, top), ImVec2(left, top + 20.f), anchor_color);
 			}
 			else if (hover_mode_ == UIAnchorType::ANCHOR_TOP_RIGHT)
 			{
 				::SetCursor(::LoadCursor(NULL, IDC_SIZENESW));
-				draw_list_->AddTriangleFilled(ImVec2(right - 20.0f, top), ImVec2(right, top), ImVec2(right, top + 20.f), hover_color);
+				draw_list_->AddTriangleFilled(ImVec2(right - 20.0f, top), ImVec2(right, top), ImVec2(right, top + 20.f), anchor_color);
 			}
 			else if (hover_mode_ == UIAnchorType::ANCHOR_TOP)
 			{
 				::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
-				draw_list_->AddRectFilled(ImVec2(left, top), ImVec2(right, top + 15.0f), hover_color);
+				draw_list_->AddRectFilled(ImVec2(left, top), ImVec2(right, top + 15.0f), anchor_color);
 			}
 			else if (hover_mode_ == UIAnchorType::ANCHOR_BOTTOM_LEFT)
 			{
 				::SetCursor(::LoadCursor(NULL, IDC_SIZENESW));
-				draw_list_->AddTriangleFilled(ImVec2(left, bottom), ImVec2(left + 20.0f, bottom), ImVec2(left, bottom - 20.f), hover_color);
+				draw_list_->AddTriangleFilled(ImVec2(left, bottom), ImVec2(left + 20.0f, bottom), ImVec2(left, bottom - 20.f), anchor_color);
 			}
 			else if (hover_mode_ == UIAnchorType::ANCHOR_BOTTOM_RIGHT)
 			{
 				::SetCursor(::LoadCursor(NULL, IDC_SIZENWSE));
-				draw_list_->AddTriangleFilled(ImVec2(right - 20.0f, bottom), ImVec2(right, bottom), ImVec2(right, bottom - 20.f), hover_color);
+				draw_list_->AddTriangleFilled(ImVec2(right - 20.0f, bottom), ImVec2(right, bottom), ImVec2(right, bottom - 20.f), anchor_color);
 			}
 			else if (hover_mode_ == UIAnchorType::ANCHOR_BOTTOM)
 			{
 				::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
-				draw_list_->AddRectFilled(ImVec2(left, bottom), ImVec2(right, bottom - 15.0f), hover_color);
+				draw_list_->AddRectFilled(ImVec2(left, bottom), ImVec2(right, bottom - 15.0f), anchor_color);
 			}
 			else if (hover_mode_ == UIAnchorType::ANCHOR_LEFT)
 			{
 				::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
-				draw_list_->AddRectFilled(ImVec2(left, top), ImVec2(left + 15.0f, bottom), hover_color);
+				draw_list_->AddRectFilled(ImVec2(left, top), ImVec2(left + 15.0f, bottom), anchor_color);
 			}
 			else if (hover_mode_ == UIAnchorType::ANCHOR_RIGHT)
 			{
 				::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
-				draw_list_->AddRectFilled(ImVec2(right, top), ImVec2(right - 15.0f, bottom), hover_color);
+				draw_list_->AddRectFilled(ImVec2(right, top), ImVec2(right - 15.0f, bottom), anchor_color);
 			}
 		}
 
-		draw_list_->AddRect(ImVec2(left, top), ImVec2(right, bottom), anchor_color, 0.0f, 0, thickness);
+		draw_list_->AddRect(ImVec2(left, top), ImVec2(right, bottom), hover_color, 0.0f, 0, 1.0f);
 
-		if (canvas_in_focus)
-		{
-			left += width >= 0.0f ? 1.0f : -1.0f;
-			top += height >= 0.0f ? 1.0f : -1.0f;
-
-			auto middle_x = left + ((right - left) / 2.0f);
-			auto middle_y = top + ((bottom - top) / 2.0f);
-
-			auto grab_size = 4.0f;
-
-			draw_list_->AddRectFilled(ImVec2(left - grab_size, top - grab_size), ImVec2(left + grab_size, top + grab_size), white_color); // top-left
-			draw_list_->AddRect(ImVec2(left - grab_size, top - grab_size), ImVec2(left + grab_size, top + grab_size), anchor_color, 0.0f, 0, thickness); // top-left
-
-			draw_list_->AddRectFilled(ImVec2(right - grab_size, top - grab_size), ImVec2(right + grab_size, top + grab_size), white_color, 0.0f); // top-right
-			draw_list_->AddRect(ImVec2(right - grab_size, top - grab_size), ImVec2(right + grab_size, top + grab_size), anchor_color, 0.0f, 0, thickness); // top-right
-
-			draw_list_->AddRectFilled(ImVec2(left - grab_size, bottom - grab_size), ImVec2(left + grab_size, bottom + grab_size), white_color, 0.0f); // bottom-left
-			draw_list_->AddRect(ImVec2(left - grab_size, bottom - grab_size), ImVec2(left + grab_size, bottom + grab_size), anchor_color, 0.0f, 0, thickness); // bottom-left
-
-			draw_list_->AddRectFilled(ImVec2(right - grab_size, bottom - grab_size), ImVec2(right + grab_size, bottom + grab_size), white_color, 0.0f); // bottom-right
-			draw_list_->AddRect(ImVec2(right - grab_size, bottom - grab_size), ImVec2(right + grab_size, bottom + grab_size), anchor_color, 0.0f, 0, thickness); // bottom-right
-
-			draw_list_->AddRectFilled(ImVec2(left - grab_size, middle_y - grab_size), ImVec2(left + grab_size, middle_y + grab_size), white_color, 0.0f); // middle-left
-			draw_list_->AddRect(ImVec2(left - grab_size, middle_y - grab_size), ImVec2(left + grab_size, middle_y + grab_size), anchor_color, 0.0f, 0, thickness); // middle-left
-
-			draw_list_->AddRectFilled(ImVec2(right - grab_size, middle_y - grab_size), ImVec2(right + grab_size, middle_y + grab_size), white_color, 0.0f); // middle-right
-			draw_list_->AddRect(ImVec2(right - grab_size, middle_y - grab_size), ImVec2(right + grab_size, middle_y + grab_size), anchor_color, 0.0f, 0, thickness); // middle-left
-
-			draw_list_->AddRectFilled(ImVec2(middle_x - grab_size, top - grab_size), ImVec2(middle_x + grab_size, top + grab_size), white_color, 0.0f); // middle-top
-			draw_list_->AddRect(ImVec2(middle_x - grab_size, top - grab_size), ImVec2(middle_x + grab_size, top + grab_size), anchor_color, 0.0f, 0, thickness); // middle-left
-
-			draw_list_->AddRectFilled(ImVec2(middle_x - grab_size, bottom - grab_size), ImVec2(middle_x + grab_size, bottom + grab_size), white_color, 0.0f); // middle-bottom
-			draw_list_->AddRect(ImVec2(middle_x - grab_size, bottom - grab_size), ImVec2(middle_x + grab_size, bottom + grab_size), anchor_color, 0.0f, 0, thickness); // middle-left
-		}
 	}
 
 	void canvas::update_mode_for_anchors(int* mode, UIElement* element, ImVec2 mouse_pos)
@@ -220,9 +200,6 @@ namespace uieditor
 		auto right = width >= 0.0f ? scaled_right : scaled_left;
 		auto bottom = height >= 0.0f ? scaled_bottom : scaled_top;
 
-		auto middle_x = left + ((right - left) / 2.0f);
-		auto middle_y = top + ((bottom - top) / 2.0f);
-
 		auto radius = 20.0f;
 
 		auto clicked_left = mouse_pos.x >= left && mouse_pos.x <= left + radius;
@@ -230,8 +207,8 @@ namespace uieditor
 		auto clicked_right = mouse_pos.x <= right && mouse_pos.x >= right - radius;
 		auto clicked_bottom = mouse_pos.y <= bottom && mouse_pos.y >= bottom - radius;
 
-		auto clicked_middle_x = mouse_pos.x >= middle_x - radius && mouse_pos.x <= middle_x + radius;
-		auto clicked_middle_y = mouse_pos.y >= middle_y - radius && mouse_pos.y <= middle_y + radius;
+		auto clicked_middle_x = mouse_pos.x >= left + radius && mouse_pos.x <= right - radius;
+		auto clicked_middle_y = mouse_pos.y >= top + radius && mouse_pos.y <= bottom - radius;
 
 		if (clicked_left && clicked_top)
 		{
@@ -271,7 +248,7 @@ namespace uieditor
 		}
 	}
 
-	bool canvas::clicked_in_children_bounds(UIElement* element, ImVec2 mouse_pos)
+	bool canvas::clicked_in_children_bounds(UIElement* element, ImVec2 mouse_pos, bool hover)
 	{
 		auto child = element->lastChild;
 		while (child)
@@ -289,11 +266,16 @@ namespace uieditor
 
 			if (in_child_bounds_x && in_child_bounds_y)
 			{
-				properties::element_ = child;
+				if (hover)
+				{
+					hovered_element_ = child;
+				}
+				else
+				{
+					properties::element_ = child;
+				}
 
-				clicked_in_element_bounds(child, mouse_pos);
-
-				return true;
+				return clicked_in_element_bounds(child, mouse_pos, hover);
 			}
 
 			if (child->prevSibling == NULL)
@@ -309,7 +291,7 @@ namespace uieditor
 		return false;
 	}
 
-	bool canvas::clicked_in_element_bounds(UIElement* element, ImVec2 mouse_pos)
+	bool canvas::clicked_in_element_bounds(UIElement* element, ImVec2 mouse_pos, bool hover)
 	{
 		auto scaled_left = element->left * zoom_pct_;
 		auto scaled_top = element->top * zoom_pct_;
@@ -323,12 +305,19 @@ namespace uieditor
 
 		if (in_bounds_x && in_bounds_y)
 		{
-			in_child_bounds = element->firstChild != nullptr ? clicked_in_children_bounds(element, mouse_pos) : true;
+			in_child_bounds = element->firstChild != nullptr ? clicked_in_children_bounds(element, mouse_pos, hover) : true;
 
 			// if we didnt click within a child then just select the parent
 			if (!in_child_bounds)
 			{
-				properties::element_ = element;
+				if (hover)
+				{
+					hovered_element_ = element;
+				}
+				else
+				{
+					properties::element_ = element;
+				}
 
 				return true;
 			}
@@ -422,6 +411,8 @@ namespace uieditor
 		{
 			if (ImGui::BeginMenuBar())
 			{
+				ImGui::TextUnformatted(properties::element_->name.data());
+
 				ImGui::Text("Width: %.0f", properties::element_->right - properties::element_->left);
 
 				ImGui::PushStyleColor(ImGuiCol_Button, link_width_height_ ? ImGui::GetStyleColorVec4(ImGuiCol_Button) : ImVec4(0, 0, 0, 0));
@@ -476,6 +467,12 @@ namespace uieditor
 
 			draw_list_ = ImGui::GetWindowDrawList();
 
+			// remove anti aliasing lines from draw list
+			if ((draw_list_->Flags & ImDrawListFlags_AntiAliasedLines) != 0)
+			{
+				draw_list_->Flags &= ~ImDrawListFlags_AntiAliasedLines;
+			}
+
 			lui::element::context_menu(properties::element_, true);
 
 			if (is_hovered)
@@ -483,13 +480,15 @@ namespace uieditor
 				auto wheel = ImGui::GetIO().MouseWheel;
 				if (wheel)
 				{
-					zoom_pct_ += (wheel * 0.05f);
+					zoom_pct_ += wheel * 0.05f;
 					zoom_pct_ = std::clamp(zoom_pct_, 0.25f, 2.0f);
 				}
 
+				hovering_element_ = clicked_in_element_bounds(root, mouse_pos_, true);
+
 				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
-					clicked_in_element_ = clicked_in_element_bounds(root, mouse_pos_);
+					clicked_in_element_ = clicked_in_element_bounds(root, mouse_pos_, false);
 
 					if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 					{
@@ -499,6 +498,8 @@ namespace uieditor
 						}
 					}
 
+					hovered_element_ = properties::element_;
+
 					update_mode_for_anchors(&click_mode_, properties::element_, mouse_pos_);
 				}
 
@@ -507,19 +508,18 @@ namespace uieditor
 			else
 			{
 				clicked_in_element_ = false;
+				hovering_element_ = false;
 
 				click_mode_ = UIAnchorType::ANCHOR_NONE;
 				hover_mode_ = UIAnchorType::ANCHOR_NONE;
 			}
 
-			auto is_element_root = properties::element_ == root;
-
 			if (is_active)
 			{
-				if (clicked_in_element_)
+				if (clicked_in_element_ && hovered_element_)
 				{
 					// dont want to move/resize root
-					if (!is_element_root)
+					if (properties::element_ != root)
 					{
 						handle_element_transform(properties::element_);
 					}
@@ -552,9 +552,14 @@ namespace uieditor
 			// remove canvas clip
 			draw_list_->PopClipRect();
 
-			if (!is_element_root)
+			if (properties::element_ != root)
 			{
-				highlight_selected_element(properties::element_);
+				highlight_selected_element(properties::element_, false);
+			}
+
+			if (properties::element_ != hovered_element_ && hovered_element_ != root && hovered_element_ != NULL)
+			{
+				highlight_selected_element(hovered_element_, true);
 			}
 
 			// draw zoom pct
