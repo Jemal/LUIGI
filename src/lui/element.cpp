@@ -100,6 +100,40 @@ namespace lui
 		}
 	}
 
+	UIElement* element::add_and_select_element(bool from_canvas)
+	{
+		lui::element::create_element();
+
+		auto element = uieditor::properties::element_;
+
+		auto child = lui::core::element_pool_.at(lui::core::element_pool_.size());
+
+		lui::element::add_element(element, child);
+
+		// place the element based on where we clicked in the canvas
+		if (from_canvas)
+		{
+			child->currentAnimationState.topAnchor = true;
+			child->currentAnimationState.leftAnchor = true;
+			child->currentAnimationState.rightAnchor = false;
+			child->currentAnimationState.bottomAnchor = false;
+
+			auto left = uieditor::canvas::mouse_pos_.x - (element->left * uieditor::canvas::zoom_pct_);
+			auto top = uieditor::canvas::mouse_pos_.y - (element->top * uieditor::canvas::zoom_pct_);
+
+			//::log::print(0, "%g %g [%g, %g]", left, top, uieditor::canvas::mouse_pos.x, uieditor::canvas::mouse_pos.y);
+
+			child->currentAnimationState.leftPx = left;
+			child->currentAnimationState.topPx = top;
+			child->currentAnimationState.rightPx = left + 75.0f;
+			child->currentAnimationState.bottomPx = top + 75.0f;
+		}
+
+		uieditor::tree::select_element(child);
+
+		return child;
+	}
+
 	std::string element::type_to_string(int type)
 	{
 		if (type == UIElementType::UI_IMAGE)
@@ -610,60 +644,37 @@ namespace lui
 				uieditor::tree::select_element(element);
 			}
 
-			ImGui::PushItemWidth(ImGui::CalcTextSize("A").x * IM_ARRAYSIZE(uieditor::properties::element_name_) + 5.0f);
-
-			if (ImGui::Selectable("Add child"))
+			if (ImGui::BeginMenu("Add"))
 			{
-				lui::element::create_element();
-
-				auto child = lui::core::element_pool_.at(lui::core::element_pool_.size());
-				
-				lui::element::add_element(element, child);
-
-				// place the element based on where we clicked in the canvas
-				if (from_canvas)
+				if (ImGui::MenuItem("Element"))
 				{
-					child->currentAnimationState.topAnchor = true;
-					child->currentAnimationState.leftAnchor = true;
-					child->currentAnimationState.rightAnchor = false;
-					child->currentAnimationState.bottomAnchor = false;
+					auto new_element = add_and_select_element(from_canvas);
 
-					auto left = uieditor::canvas::mouse_pos_.x - (element->left * uieditor::canvas::zoom_pct_);
-					auto top = uieditor::canvas::mouse_pos_.y - (element->top * uieditor::canvas::zoom_pct_);
-					
-					//::log::print(0, "%g %g [%g, %g]", left, top, uieditor::canvas::mouse_pos.x, uieditor::canvas::mouse_pos.y);
-
-					child->currentAnimationState.leftPx = left;
-					child->currentAnimationState.topPx = top;
-					child->currentAnimationState.rightPx = left + 75.0f;
-					child->currentAnimationState.bottomPx = top + 75.0f;
+					new_element->type = UI_ELEMENT;
+					new_element->layoutFunction = NULL;
+					new_element->renderFunction = NULL;
 				}
 
-				uieditor::tree::select_element(child);
-
-				ImGui::CloseCurrentPopup();
-			}
-
-			if (ImGui::Selectable("Fit to parent"))
-			{
-				auto* parent = element->parent;
-				if (parent)
+				if (ImGui::MenuItem("Image"))
 				{
-					element->currentAnimationState.leftAnchor = true;
-					element->currentAnimationState.topAnchor = true;
-					element->currentAnimationState.rightAnchor = true;
-					element->currentAnimationState.bottomAnchor = true;
+					auto new_element = add_and_select_element(from_canvas);
 
-					element->currentAnimationState.leftPx = 0;
-					element->currentAnimationState.topPx = 0;
-					element->currentAnimationState.rightPx = 0;
-					element->currentAnimationState.bottomPx = 0;
-
-					lui::element::invalidate_layout(element);
+					new_element->type = UI_IMAGE;
+					new_element->renderFunction = lui::element::ui_image_render;
 				}
+
+				if (ImGui::MenuItem("Text"))
+				{
+					auto new_element = add_and_select_element(from_canvas);
+
+					new_element->type = UI_TEXT;
+					new_element->renderFunction = lui::element::ui_text_render;
+				}
+
+				ImGui::EndMenu();
 			}
 
-			if (ImGui::Selectable("Remove element"))
+			if (ImGui::Selectable("Remove"))
 			{
 				auto parent = element->parent;
 
@@ -679,6 +690,25 @@ namespace lui
 				}
 			}
 
+			if (ImGui::Selectable("Fit to parent"))
+			{
+				auto* parent = element->parent;
+				if (parent)
+				{
+					element->currentAnimationState.leftAnchor = true;
+					element->currentAnimationState.topAnchor = true;
+					element->currentAnimationState.rightAnchor = true;
+					element->currentAnimationState.bottomAnchor = true;
+
+					element->currentAnimationState.leftPx = 0.0f;
+					element->currentAnimationState.topPx = 0.0f;
+					element->currentAnimationState.rightPx = 0.0f;
+					element->currentAnimationState.bottomPx = 0.0f;
+
+					lui::element::invalidate_layout(element);
+				}
+			}
+
 			if (ImGui::BeginMenu("Edit Name"))
 			{
 				ImGui::InputText("##id", uieditor::properties::element_name_, IM_ARRAYSIZE(uieditor::properties::element_name_));
@@ -690,8 +720,6 @@ namespace lui
 
 				ImGui::EndMenu();
 			}
-
-			ImGui::PopItemWidth();
 
 			ImGui::EndPopup();
 		}

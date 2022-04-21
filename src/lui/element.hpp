@@ -160,6 +160,7 @@ namespace lui
 	public:
 		static void add_element(UIElement* element, UIElement* child);
 		static void create_element();
+		static UIElement* add_and_select_element(bool from_canvas);
 
 		static std::string type_to_string(int type);
 
