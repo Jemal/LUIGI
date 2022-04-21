@@ -127,19 +127,12 @@ namespace renderer
 
 		// register fonts here or else death
 		// need a better way to register fonts since hardcoding them is dumb
-		//font::register_font("DebugFont", "consolas", 20.0f);
-		//font::register_font("HudDigitalSmallFont", "iw6\\iw6_digital", 20.0f);
-		//font::register_font("HudDigitalNormalFont", "iw6\\iw6_digital", 26.0f);
-		font::register_font("HudDigitalBigFont", "iw6\\iw6_digital", 30.0f);
-		//font::register_font("HudDigitalExtraBigFont", "iw6\\iw6_digital", 80.0f);
 
 		ImGui_ImplWin32_Init(uieditor::app::hwnd_);
 		ImGui_ImplDX11_Init(globals_.device, globals_.device_context);
 		ImGui_ImplDX11_CreateDeviceObjects();
 
 		globals_.clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-		globals_.link_icon = image::create_texture("uieditor\\assets\\link_image.png");
 
 		register_images_for_directory("uieditor\\images");
 	}

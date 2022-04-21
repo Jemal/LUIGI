@@ -110,7 +110,7 @@ namespace uieditor
 
 				ImGui::PushID(i);
 
-				const bool is_selected = (selected_font == i);
+				auto is_selected = (selected_font == i);
 
 				if (ImGui::Selectable(font->name.data()))
 				{

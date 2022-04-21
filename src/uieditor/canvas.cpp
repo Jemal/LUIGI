@@ -21,8 +21,6 @@ namespace uieditor
 
 	UIElement* canvas::hovered_element_ = nullptr;
 
-	bool canvas::link_width_height_ = false;
-
 	ImVec4 canvas::region_ = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 	ImVec2 canvas::size_ = ImVec2(1280.0f, 720.0f);
 	ImVec2 canvas::mouse_pos_ = ImVec2(0.0f, 0.0f);
@@ -338,8 +336,6 @@ namespace uieditor
 			delta.x /= zoom_pct_;
 			delta.y /= zoom_pct_;
 
-			auto keep_current_aspect_ratio = canvas::link_width_height_;
-
 			if (click_mode_ == UIAnchorType::ANCHOR_TOP_LEFT)
 			{
 				properties::element_->currentAnimationState.leftPx += delta.x;
@@ -356,13 +352,13 @@ namespace uieditor
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_BOTTOM_LEFT)
 			{
-				properties::element_->currentAnimationState.leftPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.x;
-				properties::element_->currentAnimationState.bottomPx += keep_current_aspect_ratio ? ((delta.x + delta.y) / 2.0f) : delta.y;
+				properties::element_->currentAnimationState.leftPx += delta.x;
+				properties::element_->currentAnimationState.bottomPx += delta.y;
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_BOTTOM_RIGHT)
 			{
-				properties::element_->currentAnimationState.rightPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.x;
-				properties::element_->currentAnimationState.bottomPx += keep_current_aspect_ratio ? (delta.x + delta.y) / 2.0f : delta.y;
+				properties::element_->currentAnimationState.rightPx += delta.x;
+				properties::element_->currentAnimationState.bottomPx += delta.y;
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_BOTTOM)
 			{
@@ -405,18 +401,9 @@ namespace uieditor
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::TextUnformatted(properties::element_->name.data());
+				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), properties::element_->name.data());
 
 				ImGui::Text("Width: %.0f", properties::element_->right - properties::element_->left);
-
-				ImGui::PushStyleColor(ImGuiCol_Button, link_width_height_ ? ImGui::GetStyleColorVec4(ImGuiCol_Button) : ImVec4(0, 0, 0, 0));
-
-				if (ImGui::ImageButton(renderer::engine::globals_.link_icon, ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 2))
-				{
-					link_width_height_ = link_width_height_ == false;
-				}
-
-				ImGui::PopStyleColor();
 
 				ImGui::Text("Height : %.0f", properties::element_->bottom - properties::element_->top);
 

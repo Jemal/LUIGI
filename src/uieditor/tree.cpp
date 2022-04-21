@@ -55,7 +55,7 @@ namespace uieditor
 
 		if (ImGui::BeginDragDropTarget())
 		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ELEMENT"))
+			if (auto* payload = ImGui::AcceptDragDropPayload("ELEMENT"))
 			{
 				handle_drop_element_to_parent(element);
 			}

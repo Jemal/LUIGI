@@ -9,7 +9,6 @@ namespace renderer
 		IDXGISwapChain* swapchain;
 		ID3D11RenderTargetView* render_target_view;
 		ImVec4 clear_color;
-		ID3D11ShaderResourceView* link_icon;
 	};
 
 	class engine

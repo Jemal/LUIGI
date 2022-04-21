@@ -36,8 +36,6 @@ namespace uieditor
 
 		static UIElement* hovered_element_;
 
-		static bool link_width_height_;
-
 		static void update_mode_for_anchors(int* mode, UIElement* element, ImVec2 mouse_pos);
 
 		static bool clicked_in_children_bounds(UIElement* element, ImVec2 mouse_pos, bool hover);
