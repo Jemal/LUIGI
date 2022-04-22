@@ -422,7 +422,7 @@ namespace lui
 			element->right = root->currentAnimationState.leftPx + element->currentAnimationState.globalRight;
 			element->bottom = root->currentAnimationState.topPx + element->currentAnimationState.globalBottom;
 
-			if (element->type == UIElementType::UI_TEXT)
+			if (element->type == UIElementType::UI_TEXT && element->currentAnimationState.font != NULL)
 			{
 				auto text = element->text;
 
@@ -624,6 +624,11 @@ namespace lui
 
 	void element::ui_text_render(UIElement* element, UIElement* root, float red, float green, float blue, float alpha)
 	{
+		if (element->currentAnimationState.font == NULL)
+		{
+			return;
+		}
+
 		auto wrap_width = -1.0f;
 		if (element->currentAnimationState.alignment)
 		{
@@ -632,7 +637,7 @@ namespace lui
 
 		auto font_height = element->bottom - element->top;
 
-		uieditor::canvas::draw_text(element->textLeft, element->textTop, red, green, blue, alpha, element->text.data(), element->currentAnimationState.font, font_height, wrap_width, element->currentAnimationState.alignment);
+		uieditor::canvas::draw_text(element, element->textLeft, element->textTop, red, green, blue, alpha, element->text.data(), element->currentAnimationState.font, font_height, wrap_width, element->currentAnimationState.alignment);
 	}
 
 	void element::context_menu(UIElement* element, bool from_canvas)

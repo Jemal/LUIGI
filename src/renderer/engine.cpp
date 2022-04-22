@@ -147,7 +147,7 @@ namespace renderer
 		
 		ImGui_ImplDX11_Shutdown();
 		ImGui_ImplWin32_Shutdown();
-
+		
 		cleanup_device();
 
 		DestroyWindow(uieditor::app::hwnd_);

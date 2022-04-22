@@ -20,7 +20,7 @@ namespace uieditor
 		static void pop_stencil();
 
 		static void draw_image(ID3D11ShaderResourceView* texture, float x, float y, float w, float h, float angle, ImVec4 color);
-		static void draw_text(float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float wrap_width, int alignment);
+		static void draw_text(UIElement* element, float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float wrap_width, int alignment);
 	
 	private:
 		static ImDrawList* draw_list_;

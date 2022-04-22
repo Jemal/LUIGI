@@ -67,7 +67,7 @@ namespace uieditor
 		draw_list_->AddImageQuad(texture, pos[0], pos[1], pos[2], pos[3], uvs[0], uvs[1], uvs[2], uvs[3], ImGui::GetColorU32(color));
 	}
 
-	void canvas::draw_text(float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float wrap_width, int alignment)
+	void canvas::draw_text(UIElement* element, float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float wrap_width, int alignment)
 	{
 		x *= zoom_pct_;
 		y *= zoom_pct_;
@@ -75,12 +75,17 @@ namespace uieditor
 
 		auto color = ImGui::GetColorU32(ImVec4(red, green, blue, alpha));
 
-		auto font_scale = font_height / font->size;
+		auto font_scale = (font_height / font->size) * zoom_pct_;
 
 		auto size = font->handle->Ascent * font_scale;
 		auto dist = (font->size - font->handle->Ascent) * font_scale;
 
+		// text placement has been giving me the biggest headache ever
+		// it isnt placed the same way CoD does, im probably missing something obvious or doing something wrong but ye
+		// if anyone ever looks at this feel free to fix :)
+
 		draw_list_->AddText(font->handle, size, ImVec2((region_.x + x) - font_scale, (region_.y + y) - size), color, text, 0, wrap_width);
+		//draw_list_->AddText(font->handle, size, ImVec2((region_.x + x) - font_scale, region_.y + (element->top + (dist / 2.0f))), color, text, 0, wrap_width);
 	}
 
 	void canvas::draw_grid()
@@ -174,6 +179,29 @@ namespace uieditor
 
 		draw_list_->AddRect(ImVec2(left, top), ImVec2(right, bottom), hover_color, 0.0f, 0, 1.0f);
 
+		// help debug the text area
+		if (element->type == UI_TEXT)
+		{
+			scaled_left = element->textLeft * zoom_pct_;
+			scaled_top = element->textTop * zoom_pct_;
+			scaled_right = element->textDimRight * zoom_pct_;
+			scaled_bottom = element->textDimBottom * zoom_pct_;
+
+			width = scaled_right - scaled_left;
+			height = scaled_bottom - scaled_top;
+
+			element_left = width >= 0.0f ? scaled_left : scaled_right;
+			element_top = height >= 0.0f ? scaled_top : scaled_bottom;
+			element_right = width >= 0.0f ? scaled_right : scaled_left;
+			element_bottom = height >= 0.0f ? scaled_bottom : scaled_top;
+
+			left = region_.x + element_left;
+			top = region_.y + element_top;
+			right = region_.x + element_right;
+			bottom = region_.y + element_bottom;
+
+			//draw_list_->AddRect(ImVec2(left, top), ImVec2(right, bottom), white_color, 0.0f, 0, 1.0f);
+		}
 	}
 
 	void canvas::update_mode_for_anchors(int* mode, UIElement* element, ImVec2 mouse_pos)
@@ -462,7 +490,7 @@ namespace uieditor
 				if (wheel)
 				{
 					zoom_pct_ += wheel * 0.05f;
-					zoom_pct_ = std::clamp(zoom_pct_, 0.25f, 2.0f);
+					zoom_pct_ = std::clamp(zoom_pct_, 0.25f, 3.0f);
 				}
 
 				hovering_element_ = clicked_in_element_bounds(root, mouse_pos_, true);

@@ -148,6 +148,7 @@ struct UIElement
 		float textDimTop;
 		float textDimRight;
 		float textDimBottom;
+
 		float textLeft;
 		float textTop;
 	};
