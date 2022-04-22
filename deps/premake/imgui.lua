@@ -8,6 +8,9 @@ function imgui.import()
 end
 
 function imgui.includes()
+	print("retard")
+	print(imgui.source)
+
 	includedirs {
 		imgui.source,
 		path.join(imgui.source, "stb"),
