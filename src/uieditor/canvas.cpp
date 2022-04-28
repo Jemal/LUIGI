@@ -84,7 +84,9 @@ namespace uieditor
 		// it isnt placed the same way CoD does, im probably missing something obvious or doing something wrong but ye
 		// if anyone ever looks at this feel free to fix :)
 
-		draw_list_->AddText(font->handle, size, ImVec2((region_.x + x) - font_scale, (region_.y + y) - size), color, text, 0, wrap_width);
+		auto bruh = size + font_scale;
+
+		draw_list_->AddText(font->handle, size, ImVec2((region_.x + x) - font_scale, (region_.y + y) - bruh), color, text, 0, wrap_width);
 		//draw_list_->AddText(font->handle, size, ImVec2((region_.x + x) - font_scale, region_.y + (element->top + (dist / 2.0f))), color, text, 0, wrap_width);
 	}
 
