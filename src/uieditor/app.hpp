@@ -2,6 +2,14 @@
 
 namespace uieditor
 {
+	enum FileDialogMode
+	{
+		FILE_DIALOG_NONE,
+		FILE_DIALOG_SAVE,
+		FILE_DIALOG_OPEN,
+		FILE_DIALOG_IMAGE,
+	};
+
 	class app
 	{
 	public:
@@ -19,6 +27,8 @@ namespace uieditor
 
 		static bool show_grid_;
 		static float grid_step_;
+
+		static FileDialogMode file_dialog_mode_;
 
 	private:
 		static bool show_imgui_demo_;

@@ -8,9 +8,6 @@
 
 namespace uieditor
 {
-	bool project::saving_popup_ = false;
-	bool project::opening_popup_ = false;
-
 	std::string project::project_name_ = "";
 
 	namespace
@@ -234,6 +231,8 @@ namespace uieditor
 
 				load_element_data(root, element_name, &val);
 			}
+
+			project::project_name_ = name;
 		}
 	}
 }

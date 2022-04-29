@@ -1,4 +1,5 @@
 #include <stdafx.hpp>
+#include "app.hpp"
 #include "canvas.hpp"
 #include "tree.hpp"
 #include "log.hpp"
@@ -75,39 +76,9 @@ namespace uieditor
 
 	void properties::draw_image_properties()
 	{
-		static int selected_image = 0;
-
-		/*if (combo_property("Image", element_->currentAnimationState.image == nullptr ? "Select..." : element_->currentAnimationState.image->name.data()))
-		{
-			for (auto i = 0; i < renderer::image::images_.size(); i++)
-			{
-				auto* image = &renderer::image::images_.at(i);
-
-				ImGui::PushID(i);
-
-				const bool is_selected = (selected_image == i);
-
-				if (ImGui::Selectable(image->name.data()))
-				{
-					selected_image = i;
-
-					element_->currentAnimationState.image = image;
-				}
-
-				if (is_selected)
-				{
-					ImGui::SetItemDefaultFocus();
-				}
-
-				ImGui::PopID();
-			}
-
-			ImGui::EndCombo();
-		}*/
-
 		if (button_property("Image", element_->currentAnimationState.image == nullptr ? "Select..." : element_->currentAnimationState.image->name.data()))
 		{
-			ImGuiFileDialog::Instance()->OpenModal("SelectedImageDlg", "Select Image", ".png", "uieditor/images/");
+			app::file_dialog_mode_ = FILE_DIALOG_IMAGE;
 		}
 	}
 
@@ -264,27 +235,6 @@ namespace uieditor
 					}
 
 					ImGui::EndTable();
-				}
-
-				//ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-				//ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-				//ImGui::SetNextWindowSize(ImVec2(800.0f, 350.0f), ImGuiCond_Appearing);
-
-				if (file_dialog->Display("SelectedImageDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
-				{
-					if (file_dialog->IsOk())
-					{
-						auto filename = file_dialog->GetCurrentFileName();
-						auto filepath = utils::string::va("%s\\%s", file_dialog->GetCurrentRelativePath().data(), filename.data());
-
-						auto* image = renderer::image::register_handle(filename, filepath);
-						if (element_ != nullptr && image)
-						{
-							element_->currentAnimationState.image = image;
-						}
-					}
-
-					file_dialog->Close();
 				}
 			}
 		}
