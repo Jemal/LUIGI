@@ -25,6 +25,8 @@ namespace uieditor
 	ImVec2 canvas::size_ = ImVec2(1280.0f, 720.0f);
 	ImVec2 canvas::mouse_pos_ = ImVec2(0.0f, 0.0f);
 
+	bool canvas::in_focus_ = false;
+
 	void canvas::push_stencil(float left, float top, float right, float bottom)
 	{
 		draw_list_->PushClipRect(ImVec2(left + region_.x, region_.y + top), ImVec2(right + region_.x, bottom + region_.y), true);
@@ -131,7 +133,7 @@ namespace uieditor
 		auto hover_color = hovered ? IM_COL32(248, 141, 69, 255) : IM_COL32(69, 141, 248, 255);
 		auto white_color = IM_COL32(244, 244, 244, 255);
 
-		if (!hovered)
+		if (!hovered && in_focus_)
 		{
 			if (hover_mode_ == UIAnchorType::ANCHOR_NONE)
 			{
@@ -468,9 +470,9 @@ namespace uieditor
 			}
 
 			ImGui::InvisibleButton("canvas", button_size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-			ImGui::SetItemUsingMouseWheel();
+			//ImGui::SetItemUsingMouseWheel();
 
-			auto is_hovered = ImGui::IsItemHovered();
+			auto is_hovered = in_focus_ = ImGui::IsItemHovered();
 			auto is_active = ImGui::IsItemActive();
 			mouse_pos_ = ImVec2(io->MousePos.x - region_.x, io->MousePos.y - region_.y);
 
