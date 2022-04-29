@@ -1,0 +1,166 @@
+{
+    "Canvas": {
+        "Width": 650.0,
+        "Height": 700.0
+    },
+    "Elements": {
+        "Crewmate": {
+            "Type": "UIElement",
+            "Anchors": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "Position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Color": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0
+            },
+            "Alpha": 1.0,
+            "Rotation": 0.0,
+            "Stencil": false,
+            "Children": {
+                "Body": {
+                    "Type": "UIImage",
+                    "Anchors": [
+                        true,
+                        true,
+                        true,
+                        true
+                    ],
+                    "Position": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Color": {
+                        "r": 1.0,
+                        "g": 0.25316452980041504,
+                        "b": 0.25316452980041504
+                    },
+                    "Alpha": 1.0,
+                    "Rotation": 0.0,
+                    "Stencil": false,
+                    "Image": {
+                        "Name": "white.png",
+                        "Path": "uieditor\\assets\\images\\white.png"
+                    }
+                },
+                "Visor": {
+                    "Type": "UIElement",
+                    "Anchors": [
+                        true,
+                        true,
+                        true,
+                        false
+                    ],
+                    "Position": [
+                        40.0,
+                        65.0,
+                        -40.0,
+                        333.0
+                    ],
+                    "Color": {
+                        "r": 1.0,
+                        "g": 1.0,
+                        "b": 1.0
+                    },
+                    "Alpha": 1.0,
+                    "Rotation": 0.0,
+                    "Stencil": false,
+                    "Children": {
+                        "VisorChild0": {
+                            "Type": "UIImage",
+                            "Anchors": [
+                                true,
+                                true,
+                                true,
+                                true
+                            ],
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Color": {
+                                "r": 1.0,
+                                "g": 1.0,
+                                "b": 1.0
+                            },
+                            "Alpha": 1.0,
+                            "Rotation": 0.0,
+                            "Stencil": false,
+                            "Image": {
+                                "Name": "black.png",
+                                "Path": "uieditor\\assets\\images\\black.png"
+                            }
+                        },
+                        "VisorChild1": {
+                            "Type": "UIImage",
+                            "Anchors": [
+                                true,
+                                true,
+                                true,
+                                true
+                            ],
+                            "Position": [
+                                30.0,
+                                30.0,
+                                -30.0,
+                                -30.0
+                            ],
+                            "Color": {
+                                "r": 0.3248944878578186,
+                                "g": 0.9230892658233643,
+                                "b": 1.0
+                            },
+                            "Alpha": 1.0,
+                            "Rotation": 0.0,
+                            "Stencil": false,
+                            "Image": {
+                                "Name": "white.png",
+                                "Path": "uieditor\\assets\\images\\white.png"
+                            }
+                        },
+                        "VisorChild2": {
+                            "Type": "UIImage",
+                            "Anchors": [
+                                true,
+                                true,
+                                false,
+                                false
+                            ],
+                            "Position": [
+                                362.5,
+                                41.5,
+                                514.5,
+                                100.5
+                            ],
+                            "Color": {
+                                "r": 1.0,
+                                "g": 1.0,
+                                "b": 1.0
+                            },
+                            "Alpha": 0.3499999940395355,
+                            "Rotation": 0.0,
+                            "Stencil": false,
+                            "Image": {
+                                "Name": "white.png",
+                                "Path": "uieditor\\assets\\images\\white.png"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
