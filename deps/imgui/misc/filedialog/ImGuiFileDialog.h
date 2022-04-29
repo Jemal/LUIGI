@@ -1639,7 +1639,7 @@ namespace IGFD
 		std::string GetFilePathName();								// Save File behavior : will always return the content of the field with current filter extention and current path
 		std::string GetCurrentFileName();							// Save File behavior : will always return the content of the field with current filter extention
 		std::string GetCurrentPath();								// will return current path
-		std::string GetCurrentRelativePath();						// will return current relative path
+		std::string GetCurrentDialogPath();						// will return current relative path
 		std::string GetCurrentFilter();								// will return selected filter
 		UserDatas GetUserDatas() const;								// will return user datas send with Open Dialog/Modal
 

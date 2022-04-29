@@ -174,10 +174,11 @@ namespace uieditor
 					if (file_dialog->IsOk())
 					{
 						auto filename = file_dialog->GetCurrentFileName();
-						auto filepath = utils::string::va("%s\\%s", file_dialog->GetCurrentRelativePath().data(), filename.data());
+						auto filepath = file_dialog->GetFilePathName();
+
+						filepath.erase(0, filepath.find(file_dialog->GetCurrentDialogPath()));
 
 						auto* image = renderer::image::register_handle(filename, filepath);
-
 						if (image)
 						{
 							if (file_dialog_mode_ == FILE_DIALOG_IMAGE)

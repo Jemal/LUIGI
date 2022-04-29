@@ -4899,7 +4899,7 @@ namespace IGFD
 		return prFileDialogInternal.puFileManager.GetResultingPath();
 	}
 	
-	std::string IGFD::FileDialog::GetCurrentRelativePath()
+	std::string IGFD::FileDialog::GetCurrentDialogPath()
 	{
 		return prFileDialogInternal.puFileManager.puDLGpath;
 	}
