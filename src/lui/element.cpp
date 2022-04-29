@@ -127,11 +127,27 @@ namespace lui
 			child->currentAnimationState.topPx = top;
 			child->currentAnimationState.rightPx = left + 75.0f;
 			child->currentAnimationState.bottomPx = top + 75.0f;
+
+			lui::element::invalidate_layout(child);
 		}
 
 		uieditor::tree::select_element(child);
 
 		return child;
+	}
+
+	int element::string_to_type(std::string type)
+	{
+		if (type == "UIImage"s)
+		{
+			return UI_IMAGE;
+		}
+		else if (type == "UIText"s)
+		{
+			return UI_TEXT;
+		}
+
+		return UI_ELEMENT;
 	}
 
 	std::string element::type_to_string(int type)

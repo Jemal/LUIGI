@@ -28,13 +28,11 @@ function imgui.project()
 		files {
 			path.join(imgui.source, "*.cpp"),
 			path.join(imgui.source, "*.h"),
-			path.join(imgui.source, "backends/imgui_impl_dx11.cpp"),
-			path.join(imgui.source, "backends/imgui_impl_win32.cpp"),
-			path.join(imgui.source, "backends/imgui_impl_win32.h"),
-			path.join(imgui.source, "misc/freetype/imgui_freetype.cpp"),
-			path.join(imgui.source, "misc/freetype/imgui_freetype.h"),
-			path.join(imgui.source, "misc/imgui_uie.cpp"),
-			path.join(imgui.source, "misc/imgui_uie.h")
+			path.join(imgui.source, "backends/**.cpp"),
+			path.join(imgui.source, "backends/**.h"),
+			path.join(imgui.source, "misc/**.cpp"),
+			path.join(imgui.source, "misc/**.h"),
+			path.join(imgui.source, "misc/**.hpp")
 		}
 
 		freetype.import()

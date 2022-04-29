@@ -83,23 +83,6 @@ namespace renderer
 		}
 	}
 
-	void engine::register_images_for_directory(std::string dir)
-	{
-		auto list = utils::io::list_files(dir);
-
-		for (auto& file : list)
-		{
-			if (utils::io::directory_exists(file))
-			{
-				register_images_for_directory(file);
-			}
-			else
-			{
-				image::register_image(file.data());
-			}
-		}
-	}
-
 	void engine::init()
 	{
 		if (!create_device(uieditor::app::hwnd_))
@@ -138,8 +121,6 @@ namespace renderer
 		ImGui_ImplDX11_CreateDeviceObjects();
 
 		globals_.clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-		register_images_for_directory("uieditor\\images");
 	}
 
 	void engine::shutdown()

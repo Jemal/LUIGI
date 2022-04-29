@@ -3,6 +3,7 @@
 #include "tree.hpp"
 #include "log.hpp"
 #include "properties.hpp"
+#include "misc/filedialog/ImGuiFileDialog.h"
 
 namespace uieditor
 {
@@ -44,6 +45,13 @@ namespace uieditor
 		return ImGui::SliderScalar(utils::string::va("##%s", label), type, data, &min, &max, "%.2f");
 	}
 
+	bool properties::button_property(const char* label, const char* preview_value)
+	{
+		begin_property(label);
+
+		return ImGui::Button(preview_value);
+	}
+
 	bool properties::combo_property(const char* label, const char* preview_value)
 	{
 		begin_property(label);
@@ -69,7 +77,7 @@ namespace uieditor
 	{
 		static int selected_image = 0;
 
-		if (combo_property("Image", element_->currentAnimationState.image == nullptr ? "Select..." : element_->currentAnimationState.image->name.data()))
+		/*if (combo_property("Image", element_->currentAnimationState.image == nullptr ? "Select..." : element_->currentAnimationState.image->name.data()))
 		{
 			for (auto i = 0; i < renderer::image::images_.size(); i++)
 			{
@@ -95,6 +103,11 @@ namespace uieditor
 			}
 
 			ImGui::EndCombo();
+		}*/
+
+		if (button_property("Image", element_->currentAnimationState.image == nullptr ? "Select..." : element_->currentAnimationState.image->name.data()))
+		{
+			ImGuiFileDialog::Instance()->OpenModal("SelectedImageDlg", "Select Image", ".png", "uieditor/images/");
 		}
 	}
 
@@ -230,6 +243,8 @@ namespace uieditor
 
 	void properties::draw()
 	{
+		auto file_dialog = ImGuiFileDialog::Instance();
+
 		if (ImGui::Begin("Properties"))
 		{
 			if (element_ != nullptr)
@@ -249,6 +264,27 @@ namespace uieditor
 					}
 
 					ImGui::EndTable();
+				}
+
+				//ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+				//ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+				//ImGui::SetNextWindowSize(ImVec2(800.0f, 350.0f), ImGuiCond_Appearing);
+
+				if (file_dialog->Display("SelectedImageDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+				{
+					if (file_dialog->IsOk())
+					{
+						auto filename = file_dialog->GetCurrentFileName();
+						auto filepath = utils::string::va("%s\\%s", file_dialog->GetCurrentRelativePath().data(), filename.data());
+
+						auto* image = renderer::image::register_handle(filename, filepath);
+						if (element_ != nullptr && image)
+						{
+							element_->currentAnimationState.image = image;
+						}
+					}
+
+					file_dialog->Close();
 				}
 			}
 		}

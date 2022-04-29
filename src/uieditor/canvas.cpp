@@ -433,9 +433,7 @@ namespace uieditor
 			{
 				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), properties::element_->name.data());
 
-				ImGui::Text("Width: %.0f", properties::element_->right - properties::element_->left);
-
-				ImGui::Text("Height : %.0f", properties::element_->bottom - properties::element_->top);
+				ImGui::Text("(%.0fx%.0f)", properties::element_->right - properties::element_->left, properties::element_->bottom - properties::element_->top);
 
 				ImGui::EndMenuBar();
 			}

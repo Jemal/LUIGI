@@ -2,11 +2,13 @@
 #include "app.hpp"
 #include "canvas.hpp"
 #include "log.hpp"
+#include "project.hpp"
 #include "properties.hpp"
 #include "tree.hpp"
 #include "rc/resource.hpp"
 #include "renderer/engine.hpp"
 #include "renderer/image.hpp"
+#include "misc/filedialog/ImGuiFileDialog.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -32,7 +34,7 @@ namespace uieditor
 
 		lui::core::init();
 
-		SetWindowTextA(hwnd_, "LUIGI - Untitled");
+		SetWindowTextA(hwnd_, "LUIGI");
 
 		renderer::engine::frame();
 
@@ -92,18 +94,56 @@ namespace uieditor
 
 	void app::frame()
 	{
+		menu_bar();
+
+		ImGui::DockSpaceOverViewport();
+
+		if (show_imgui_demo_)
+		{
+			ImGui::ShowDemoWindow();
+		}
+
+		canvas::draw();
+
+		log::draw();
+
+		properties::draw();
+
+		tree::draw();
+	}
+
+	void app::menu_bar()
+	{
 		if (ImGui::BeginMainMenuBar())
 		{
 			if (ImGui::BeginMenu("File"))
 			{
 				ImGui::MenuItem("New", "CTRL+N");
-				ImGui::MenuItem("Open", "CTRL+O");
+
+				if (ImGui::MenuItem("Open", "CTRL+O"))
+				{
+					project::opening_popup_ = true;
+				}
 
 				ImGui::Separator();
 
-				ImGui::MenuItem("Save", "CTRL+S");
-				ImGui::MenuItem("Save As");
-				
+				if (ImGui::MenuItem("Save", "CTRL+S"))
+				{
+					if (project::project_name_.empty())
+					{
+						project::saving_popup_ = true;
+					}
+					else
+					{
+						project::save_project(project::project_name_);
+					}
+				}
+
+				if (ImGui::MenuItem("Save As"))
+				{
+					project::saving_popup_ = true;
+				}
+
 				ImGui::EndMenu();
 			}
 
@@ -124,7 +164,7 @@ namespace uieditor
 					{
 						for (auto i = 0; i < renderer::image::images_.size(); i++)
 						{
-							auto* image = &renderer::image::images_.at(i);
+							auto* image = renderer::image::images_.at(i).get();
 
 							if (ImGui::Selectable(image->name.data()))
 							{
@@ -160,20 +200,87 @@ namespace uieditor
 
 			ImGui::EndMainMenuBar();
 		}
+	
+		auto file_dialog = ImGuiFileDialog::Instance();
 
-		ImGui::DockSpaceOverViewport();
+		file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f)); // add an icon for the filter type
+		file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".uip", ImVec4(1.0f, 1.0f, 0.0f, 0.9f));
+		file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".uiw", ImVec4(0.0f, 1.0f, 0.0f, 0.9f));
+		//file_dialog->SetFileStyle(IGFD_FileStyleByTypeDir, nullptr, ImVec4(0.5f, 1.0f, 0.9f, 0.9f), ICON_IGFD_FOLDER); // for all dirs
 
-		if (show_imgui_demo_)
+		const char* filters = "UI Project File (*.uip){.uip}, UI Widget File (*.uiw){.uiw}";
+
+		if (project::saving_popup_)
 		{
-			ImGui::ShowDemoWindow();
+			//ImGui::OpenPopup("Save");
+			file_dialog->OpenModal("SaveProjectDlg", "Save Project", filters, "uieditor/projects/", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
 		}
 
-		canvas::draw();
+		if (project::opening_popup_)
+		{
+			file_dialog->OpenModal("OpenProjectDlg", "Open Project", filters, "uieditor/projects/");
+		}
 
-		log::draw();
+		ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+		ImGui::SetNextWindowSize(ImVec2(800.0f, 350.0f), ImGuiCond_Appearing);
 
-		properties::draw();
+		if (file_dialog->Display("SaveProjectDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+		{
+			if (file_dialog->IsOk())
+			{
+				project::save_project(ImGuiFileDialog::Instance()->GetCurrentFileName());
+			}
 
-		tree::draw();
+			project::saving_popup_ = false;
+
+			file_dialog->Close();
+		}
+
+		if (file_dialog->Display("OpenProjectDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+		{
+			if (file_dialog->IsOk())
+			{
+				project::load_project(ImGuiFileDialog::Instance()->GetCurrentFileName());
+
+				SetWindowTextA(app::hwnd_, utils::string::va("LUIGI - %s", project::project_name_.data()));
+			}
+
+			project::opening_popup_ = false;
+
+			file_dialog->Close();
+		}
+
+		if (ImGui::BeginPopupModal("Save", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
+		{
+			ImGui::InputText("Project Name", &project::project_name_);
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Save", ImVec2(200, 0)))
+			{
+				project::project_name_.append(".uip");
+
+				project::save_project(project::project_name_);
+
+				SetWindowTextA(app::hwnd_, utils::string::va("LUIGI - %s", project::project_name_.data()));
+
+				project::saving_popup_ = false;
+
+				ImGui::CloseCurrentPopup();
+			}
+			
+			ImGui::SetItemDefaultFocus();
+			ImGui::SameLine();
+			
+			if (ImGui::Button("Cancel", ImVec2(200, 0)))
+			{
+				project::saving_popup_ = false;
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
 	}
 }

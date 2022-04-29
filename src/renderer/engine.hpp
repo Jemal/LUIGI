@@ -28,7 +28,5 @@ namespace renderer
 
 		static void create_render_target();
 		static void cleanup_render_target();
-
-		static void register_images_for_directory(std::string dir);
 	};
 }

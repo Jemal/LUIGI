@@ -5,6 +5,7 @@ namespace renderer
 	struct image_t
 	{
 		std::string name;
+		std::string path;
 		int width;
 		int height;
 		ID3D11ShaderResourceView* texture;
@@ -13,14 +14,12 @@ namespace renderer
 	class image
 	{
 	public:
-		static std::vector<image_t> images_;
+		static std::vector<std::unique_ptr<image_t>> images_;
 
-		static ID3D11ShaderResourceView* create_texture(std::string name);
-		static void create_texture_for_image(std::string name, image_t* image);
-
-		static void register_image(std::string name);
+		static image_t* register_handle(std::string name, std::string path);
 	
 	private:
+		static ID3D11ShaderResourceView* create_texture(std::string path, int* width, int* height);
 
 	};
 }

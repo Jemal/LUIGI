@@ -163,6 +163,7 @@ namespace lui
 		static void create_element();
 		static UIElement* add_and_select_element(bool from_canvas);
 
+		static int string_to_type(std::string type);
 		static std::string type_to_string(int type);
 
 		static bool is_descendent_of(UIElement* element, UIElement* child);

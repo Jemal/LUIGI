@@ -1,6 +1,6 @@
 #pragma once
 
-#include "imgui.h"      // IMGUI_API
+#include "imgui.h"
 
 #include <string>
 

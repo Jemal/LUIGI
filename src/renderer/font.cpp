@@ -46,6 +46,10 @@ namespace renderer
 				//cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 
 				font.handle = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(default_font.data(), default_font.size(), 16.0f, &cfg);
+
+				static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
+				ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+				ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);
 			}
 		}
 

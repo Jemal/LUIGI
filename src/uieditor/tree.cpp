@@ -79,7 +79,7 @@ namespace uieditor
 
 					if (i == UIElementType::UI_IMAGE)
 					{
-						element->currentAnimationState.image = &renderer::image::images_.at(0);
+						element->currentAnimationState.image = renderer::image::images_.at(0).get();
 
 						element->renderFunction = lui::element::ui_image_render;
 					}

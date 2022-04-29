@@ -13,6 +13,7 @@
 #pragma warning(disable: 26495) // x is uninitialized. Always initialize a member variable
 #pragma warning(disable: 26498) // x is constexpr, mark variable 'x' constexpr if compile - time evaluation is desired
 #pragma warning(disable: 26812) // The enum type 'x' is unscoped.Prefer 'enum class' over 'enum'
+#pragma warning(disable: 26819) // Unannotated fallthrough
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -73,6 +74,7 @@
 #include <backends/imgui_impl_win32.h>
 #include <misc/imgui_uie.h>
 #include <misc/freetype/imgui_freetype.h>
+#include <misc/cpp/imgui_stdlib.h>
 #pragma warning(pop)
 
 #include "utils/io.hpp"

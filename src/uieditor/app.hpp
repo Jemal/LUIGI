@@ -22,5 +22,7 @@ namespace uieditor
 
 	private:
 		static bool show_imgui_demo_;
+
+		static void menu_bar();
 	};
 }

@@ -35,10 +35,7 @@ namespace lui
 
 			auto pool_index = this->m_firstFree;
 
-			if (pool_index > Max)
-			{
-				__debugbreak();
-			}
+			assert(pool_index <= Max);
 
 			this->m_firstFree = this->m_poolData[pool_index];
 			this->m_poolData[pool_index] = this->m_iteration;
