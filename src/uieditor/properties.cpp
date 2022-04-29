@@ -3,8 +3,8 @@
 #include "canvas.hpp"
 #include "tree.hpp"
 #include "log.hpp"
+#include "project.hpp"
 #include "properties.hpp"
-#include "misc/filedialog/ImGuiFileDialog.h"
 
 namespace uieditor
 {
@@ -179,9 +179,15 @@ namespace uieditor
 			lui::element::invalidate_layout(element_);
 		}
 
-		color_property("Color:", &element_->currentAnimationState.red);
+		if (color_property("Color:", &element_->currentAnimationState.red))
+		{
+			lui::element::invalidate_layout(element_);
+		}
 
-		slider_property("Alpha:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.alpha, 0.0f, 1.0f);
+		if (slider_property("Alpha:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.alpha, 0.0f, 1.0f))
+		{
+			lui::element::invalidate_layout(element_);
+		}
 
 		if (element_->type == UIElementType::UI_IMAGE)
 		{
@@ -209,13 +215,13 @@ namespace uieditor
 			{
 				element_->currentAnimationState.flags &= ~AS_STENCIL;
 			}
+
+			lui::element::invalidate_layout(element_);
 		}
 	}
 
 	void properties::draw()
 	{
-		auto file_dialog = ImGuiFileDialog::Instance();
-
 		if (ImGui::Begin("Properties"))
 		{
 			if (element_ != nullptr)

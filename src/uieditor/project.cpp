@@ -1,13 +1,14 @@
 #include <stdafx.hpp>
-#include "project.hpp"
+#include "app.hpp"
 #include "canvas.hpp"
 #include "log.hpp"
+#include "project.hpp"
+#include "renderer/image.hpp"
 #include "utils/json.hpp"
-#include <commdlg.h>
-#include <tchar.h>
 
 namespace uieditor
 {
+	ProjectState project::state_ = PROJECT_NEW;
 	std::string project::project_name_ = "";
 
 	namespace
@@ -158,9 +159,37 @@ namespace uieditor
 		}
 	}
 
+	void project::new_project()
+	{
+		saved_elements_.clear();
+
+		for (auto i = 1; i < lui::core::allocated_elements_; i++)
+		{
+			auto element = lui::core::element_pool_.at(i);
+			lui::element::remove_element(element);
+		}
+
+		canvas::size_.x = 1280.0f;
+		canvas::size_.y = 720.0f;
+
+		auto root = lui::core::get_root_element();
+		lui::element::invalidate_layout(root);
+
+		renderer::image::images_.clear();
+
+		state_ = PROJECT_NEW;
+
+		set_project_name("Untitled", true);
+	}
+
 	void project::save_project(std::string name)
 	{
 		saved_elements_.clear();
+
+		if (!name.contains(".uip"))
+		{
+			name.append(".uip");
+		}
 
 		auto project_path = std::filesystem::path("uieditor\\projects") / name;
 		if (utils::io::file_exists(project_path.string()))
@@ -189,6 +218,10 @@ namespace uieditor
 		}
 
 		log::print(log_normal, "Saving project '%s'", name.data());
+
+		state_ = PROJECT_SAVED;
+
+		set_project_name(name, false);
 
 		utils::io::write_file(project_path.string(), project_data.dump(4));
 	}
@@ -232,7 +265,30 @@ namespace uieditor
 				load_element_data(root, element_name, &val);
 			}
 
-			project::project_name_ = name;
+			state_ = PROJECT_SAVED;
+
+			set_project_name(name, false);
+		}
+	}
+
+	void project::set_project_name(std::string name, bool modified)
+	{
+		project_name_ = name;
+
+		auto title = utils::string::va("LUIGI - %s%s", name.data(), modified ? "*" : "");
+
+		SetWindowTextA(app::hwnd_, title);
+	}
+
+	void project::set_project_modified()
+	{
+		if (state_ == PROJECT_SAVED)
+		{
+			printf("project modified\n");
+
+			state_ = PROJECT_MODIFIED;
+
+			set_project_name(project_name_, true);
 		}
 	}
 }

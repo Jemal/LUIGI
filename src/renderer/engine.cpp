@@ -101,7 +101,7 @@ namespace renderer
 
 		auto* io = &ImGui::GetIO();
 
-		io->IniFilename = "uieditor\\config.ini";
+		io->IniFilename = "uieditor\\config\\panels.ini";
 		io->ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 
 		ImGui::StyleUIE();
@@ -129,8 +129,8 @@ namespace renderer
 		//ImGui::DestroyContext();
 
 		// force save current settings, this is normally done in DestroyContext
-		ImGui::SaveIniSettingsToDisk("uieditor\\config.ini");
-		
+		ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
+
 		ImGui_ImplDX11_Shutdown();
 		ImGui_ImplWin32_Shutdown();
 		

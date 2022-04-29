@@ -36,7 +36,7 @@ namespace uieditor
 
 		lui::core::init();
 
-		SetWindowTextA(hwnd_, "LUIGI");
+		project::set_project_name("Untitled", true);
 
 		renderer::engine::frame();
 
@@ -125,20 +125,23 @@ namespace uieditor
 			switch (file_dialog_mode_)
 			{
 			case FILE_DIALOG_SAVE:
-				file_dialog->OpenModal("SaveProjectDlg", "Save Project", "UI Project File (*.uip){.uip}, UI Widget File (*.uiw){.uiw}", "uieditor/projects/", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
+				file_dialog->OpenModal("SaveProjectDlg", "Save Project", "UI Project File (*.uip){.uip}, UI Widget File (*.uiw){.uiw}", "uieditor\\projects\\", 1, NULL, ImGuiFileDialogFlags_ConfirmOverwrite);
 				break;
 			case FILE_DIALOG_OPEN:
-				file_dialog->OpenModal("OpenProjectDlg", "Open Project", "UI Project File (*.uip){.uip}, UI Widget File (*.uiw){.uiw}", "uieditor/projects/");
+				file_dialog->OpenModal("OpenProjectDlg", "Open Project", "UI Project File (*.uip){.uip}, UI Widget File (*.uiw){.uiw}", "uieditor\\projects\\");
 				break;
 			case FILE_DIALOG_IMAGE:
-				file_dialog->OpenModal("SelectImageDlg", "Select Image", ".png", "uieditor/images/");
+				file_dialog->OpenModal("ChooseImageDlg", "Choose Image", ".png", "uieditor\\assets\\images\\");
+				break;
+			case FILE_DIALOG_BACKGROUND_IMAGE:
+				file_dialog->OpenModal("ChooseImageDlg", "Choose Background Image", ".png", "uieditor\\assets\\images\\");
 				break;
 			}
 
 			if (file_dialog_mode_ != FILE_DIALOG_NONE)
 			{
 				auto center = ImGui::GetMainViewport()->GetCenter();
-				ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+				ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 				ImGui::SetNextWindowSize(ImVec2(800.0f, 350.0f), ImGuiCond_Appearing);
 			
 				if (file_dialog->Display("SaveProjectDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
@@ -158,8 +161,6 @@ namespace uieditor
 					if (file_dialog->IsOk())
 					{
 						project::load_project(ImGuiFileDialog::Instance()->GetCurrentFileName());
-
-						SetWindowTextA(app::hwnd_, utils::string::va("LUIGI - %s", project::project_name_.data()));
 					}
 
 					file_dialog_mode_ = FILE_DIALOG_NONE;
@@ -167,7 +168,7 @@ namespace uieditor
 					file_dialog->Close();
 				}
 
-				if (file_dialog->Display("SelectImageDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+				if (file_dialog->Display("ChooseImageDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
 				{
 					if (file_dialog->IsOk())
 					{
@@ -175,9 +176,20 @@ namespace uieditor
 						auto filepath = utils::string::va("%s\\%s", file_dialog->GetCurrentRelativePath().data(), filename.data());
 
 						auto* image = renderer::image::register_handle(filename, filepath);
-						if (properties::element_ != nullptr && image)
+
+						if (image)
 						{
-							properties::element_->currentAnimationState.image = image;
+							if (file_dialog_mode_ == FILE_DIALOG_IMAGE)
+							{
+								if (properties::element_ != nullptr && image)
+								{
+									properties::element_->currentAnimationState.image = image;
+								}
+							}
+							else
+							{
+								canvas::background_image_ = image;
+							}
 						}
 					}
 
@@ -195,7 +207,10 @@ namespace uieditor
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				ImGui::MenuItem("New", "CTRL+N");
+				if (ImGui::MenuItem("New", "CTRL+N"))
+				{
+					project::new_project();
+				}
 
 				if (ImGui::MenuItem("Open", "CTRL+O"))
 				{
@@ -206,7 +221,7 @@ namespace uieditor
 
 				if (ImGui::MenuItem("Save", "CTRL+S"))
 				{
-					if (project::project_name_.empty())
+					if (project::state_ == PROJECT_NEW)
 					{
 						file_dialog_mode_ = FILE_DIALOG_SAVE;
 					}
@@ -235,24 +250,9 @@ namespace uieditor
 			{
 				ImGui::MenuItem("Show Background Image", "CTRL+B", &show_background_);
 
-				if (ImGui::BeginMenu("Background Image"))
+				if (ImGui::MenuItem("Background Image"))
 				{
-					if (ImGui::BeginCombo("##BackgroundImage", canvas::background_image_ == nullptr ? "Select..." : canvas::background_image_->name.data()))
-					{
-						for (auto i = 0; i < renderer::image::images_.size(); i++)
-						{
-							auto* image = renderer::image::images_.at(i).get();
-
-							if (ImGui::Selectable(image->name.data()))
-							{
-								canvas::background_image_ = image;
-							}
-						}
-
-						ImGui::EndCombo();
-					}
-
-					ImGui::EndMenu();
+					file_dialog_mode_ = FILE_DIALOG_BACKGROUND_IMAGE;
 				}
 
 				ImGui::Separator();

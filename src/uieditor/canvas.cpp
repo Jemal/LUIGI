@@ -3,6 +3,7 @@
 #include "canvas.hpp"
 #include "tree.hpp"
 #include "log.hpp"
+#include "project.hpp"
 #include "properties.hpp"
 #include "renderer/image.hpp"
 
@@ -411,20 +412,9 @@ namespace uieditor
 				properties::element_->currentAnimationState.topPx += delta.y;
 				properties::element_->currentAnimationState.bottomPx += delta.y;
 			}
-		}
-		else
-		{
-			auto wheel = io->MouseWheel;
-			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
-			{
-				wheel *= 5.0f;
-			}
 
-			properties::element_->currentAnimationState.topPx -= wheel;
-			properties::element_->currentAnimationState.bottomPx += wheel;
+			lui::element::invalidate_layout(properties::element_);
 		}
-
-		lui::element::invalidate_layout(properties::element_);
 	}
 
 	void canvas::draw()

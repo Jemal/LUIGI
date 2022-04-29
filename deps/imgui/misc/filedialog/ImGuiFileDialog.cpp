@@ -219,10 +219,10 @@ namespace IGFD
 #define fileSizeGigaBytes "Go"
 #endif // fileSizeGigaBytes
 #ifndef OverWriteDialogTitleString
-#define OverWriteDialogTitleString "The file Already Exist !"
+#define OverWriteDialogTitleString "File already exists"
 #endif // OverWriteDialogTitleString
 #ifndef OverWriteDialogMessageString
-#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
+#define OverWriteDialogMessageString "Would you like to overwrite it?"
 #endif // OverWriteDialogMessageString
 #ifndef OverWriteDialogConfirmButtonString
 #define OverWriteDialogConfirmButtonString "Confirm"
@@ -2361,14 +2361,6 @@ namespace IGFD
 
 	void IGFD::FileManager::DrawPathComposer(const FileDialogInternal& vFileDialogInternal)
 	{
-		if (IMGUI_BUTTON(resetButtonString))
-		{
-			SetCurrentPath(".");
-			OpenCurrentPath(vFileDialogInternal);
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(buttonResetPathString);
-
 #ifdef _IGFD_WIN_
 		ImGui::SameLine();
 
@@ -2379,21 +2371,6 @@ namespace IGFD
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(buttonDriveString);
 #endif // _IGFD_WIN_
-
-		ImGui::SameLine();
-		
-		if (IMGUI_BUTTON(editPathButtonString))
-		{
-			puInputPathActivated = !puInputPathActivated;
-			if (puInputPathActivated)
-			{
-				auto endIt = prCurrentPathDecomposition.end();
-				prCurrentPath = ComposeNewPath(--endIt);
-				IGFD::Utils::SetBuffer(puInputPathBuffer, MAX_PATH_BUFFER_SIZE, prCurrentPath);
-			}
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(buttonEditPathString);
 
 		ImGui::SameLine();
 
@@ -4061,7 +4038,7 @@ namespace IGFD
 		}
 #endif // USE_THUMBNAILS
 
-		prFileDialogInternal.puSearchManager.DrawSearchBar(prFileDialogInternal);
+		//prFileDialogInternal.puSearchManager.DrawSearchBar(prFileDialogInternal);
 	}
 
 	void IGFD::FileDialog::prDrawContent()
@@ -4116,7 +4093,7 @@ namespace IGFD
 			}
 		}
 #else	// USE_THUMBNAILS
-		prDrawFileListView(size);
+	prDrawFileListView(size);
 #endif	// USE_THUMBNAILS
 
 		if (prFileDialogInternal.puDLGoptionsPane)

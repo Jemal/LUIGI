@@ -1,7 +1,7 @@
 #include <stdafx.hpp>
 #include "element.hpp"
 #include "uieditor/canvas.hpp"
-#include "uieditor/log.hpp"
+#include "uieditor/project.hpp"
 #include "uieditor/properties.hpp"
 #include "uieditor/tree.hpp"
 
@@ -69,11 +69,7 @@ namespace lui
 	void element::create_element()
 	{
 		auto element = core::element_pool_.allocate();
-		if (!element)
-		{
-			uieditor::log::print(uieditor::log_error, "Failed to allocate element");
-		}
-		else
+		if (element)
 		{
 			memset(element, 0, sizeof(UIElement));
 
@@ -166,8 +162,6 @@ namespace lui
 
 	void element::remove_element(UIElement* element)
 	{
-		uieditor::log::print(uieditor::log_normal, "Removed element '%s'\n", element->name.data());
-
 		remove_children(element);
 
 		remove_from_parent(element);
@@ -209,6 +203,8 @@ namespace lui
 	void element::invalidate_layout(UIElement* element)
 	{
 		element->currentAnimationState.flags &= ~AS_LAYOUT_CACHED;
+
+		uieditor::project::set_project_modified();
 	}
 
 	void element::inherit_parent_flags(UIElement* element, UIElement* parent)

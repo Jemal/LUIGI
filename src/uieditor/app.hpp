@@ -8,6 +8,7 @@ namespace uieditor
 		FILE_DIALOG_SAVE,
 		FILE_DIALOG_OPEN,
 		FILE_DIALOG_IMAGE,
+		FILE_DIALOG_BACKGROUND_IMAGE,
 	};
 
 	class app

@@ -58,7 +58,7 @@ namespace renderer
 
 	void font::register_font(std::string name, std::string path, int size)
 	{
-		auto filepath = utils::string::va("uieditor\\fonts\\%s.ttf", path.data());
+		auto filepath = utils::string::va("uieditor\\assets\\fonts\\%s.ttf", path.data());
 		if (!utils::io::file_exists(filepath))
 		{
 			uieditor::log::print(uieditor::log_message_type::log_error, "Failed to register font '%s' (file not found)", path.data());
