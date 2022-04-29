@@ -117,18 +117,19 @@ namespace uieditor
 		{
 			auto file_dialog = ImGuiFileDialog::Instance();
 
-			file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f)); // add an icon for the filter type
-			file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".uip", ImVec4(1.0f, 1.0f, 0.0f, 0.9f));
-			file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".uiw", ImVec4(0.0f, 1.0f, 0.0f, 0.9f));
-			//file_dialog->SetFileStyle(IGFD_FileStyleByTypeDir, nullptr, ImVec4(0.5f, 1.0f, 0.9f, 0.9f), ICON_IGFD_FOLDER); // for all dirs
+			file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FILE_PIC)); // add an icon for the filter type
+			file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".uip", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FILE));
+			file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".uiw", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FILE));
+			file_dialog->SetFileStyle(IGFD_FileStyleByTypeDir, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FOLDER)); // for all dirs
+			file_dialog->SetFileStyle(IGFD_FileStyleByTypeFile, "", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FILE));
 
 			switch (file_dialog_mode_)
 			{
 			case FILE_DIALOG_SAVE:
-				file_dialog->OpenModal("SaveProjectDlg", "Save Project", "UI Project File (*.uip){.uip}, UI Widget File (*.uiw){.uiw}", "uieditor\\projects\\", 1, NULL, ImGuiFileDialogFlags_ConfirmOverwrite);
+				file_dialog->OpenModal("SaveProjectDlg", "Save Project", "UI Project File (*.uip){.uip}", "uieditor\\projects\\", 1, NULL, ImGuiFileDialogFlags_ConfirmOverwrite);
 				break;
 			case FILE_DIALOG_OPEN:
-				file_dialog->OpenModal("OpenProjectDlg", "Open Project", "UI Project File (*.uip){.uip}, UI Widget File (*.uiw){.uiw}", "uieditor\\projects\\");
+				file_dialog->OpenModal("OpenProjectDlg", "Open Project", "UI Project File (*.uip){.uip}", "uieditor\\projects\\");
 				break;
 			case FILE_DIALOG_IMAGE:
 				file_dialog->OpenModal("ChooseImageDlg", "Choose Image", ".png", "uieditor\\assets\\images\\");

@@ -5048,6 +5048,11 @@ namespace IGFD
 ///// C Interface ///////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 
+std::string convert_u8_string(std::u8string s)
+{
+	return std::string(s.begin(), s.end());
+}
+
 // Return an initialized IGFD_Selection_Pair
 IMGUIFILEDIALOG_API IGFD_Selection_Pair IGFD_Selection_Pair_Get(void)
 {
