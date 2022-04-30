@@ -32,7 +32,7 @@ namespace renderer
 	{
 		font_t font;
 		font.name = "default";
-		font.size = 16.0f;
+		font.size = 18.0f;
 
 		auto font_resource = FindResourceA(GetModuleHandleA(NULL), MAKEINTRESOURCEA(ID_DEFAULTFONT), RT_RCDATA);
 		if (font_resource)
@@ -46,7 +46,7 @@ namespace renderer
 				cfg.SizePixels = font.size;
 				//cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 
-				font.handle = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(default_font.data(), default_font.size(), 16.0f, &cfg);
+				font.handle = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(default_font.data(), default_font.size(), font.size, &cfg);
 
 				static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
 
