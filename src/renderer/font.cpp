@@ -3,7 +3,7 @@
 #include "font.hpp"
 #include "uieditor/rc/resource.hpp"
 #include "uieditor/log.hpp"
-#include "misc/filedialog/ImGuiFileDialog.h"
+#include "misc/filebrowser/ImGuiFileBrowser.h"
 
 namespace renderer
 {

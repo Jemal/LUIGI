@@ -8,7 +8,6 @@
 #include "rc/resource.hpp"
 #include "renderer/engine.hpp"
 #include "renderer/image.hpp"
-#include "misc/filedialog/ImGuiFileDialog.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -25,6 +24,8 @@ namespace uieditor
 	WNDCLASSEX app::wc_;
 
 	FileDialogMode app::file_dialog_mode_ = FILE_DIALOG_NONE;
+
+	ImGuiFileBrowser app::file_browser_;
 
 	int app::init()
 	{
@@ -113,91 +114,63 @@ namespace uieditor
 
 		tree::draw();
 
-		// file dialog
+		// file browser
 		{
-			auto file_dialog = ImGuiFileDialog::Instance();
-
-			file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FILE_PIC)); // add an icon for the filter type
-			file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".uip", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FILE));
-			file_dialog->SetFileStyle(IGFD_FileStyleByExtention, ".uiw", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FILE));
-			file_dialog->SetFileStyle(IGFD_FileStyleByTypeDir, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FOLDER)); // for all dirs
-			file_dialog->SetFileStyle(IGFD_FileStyleByTypeFile, "", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), convert_u8_string(ICON_IGFD_FILE));
+			static bool select_background_image = false;
 
 			switch (file_dialog_mode_)
 			{
 			case FILE_DIALOG_SAVE:
-				file_dialog->OpenModal("SaveProjectDlg", "Save Project", "UI Project File (*.uip){.uip}", "uieditor\\projects\\", 1, NULL, ImGuiFileDialogFlags_ConfirmOverwrite);
+				file_browser_.open_dialog("Save Project", "./uieditor/projects/");
+				file_dialog_mode_ = FILE_DIALOG_NONE;
 				break;
 			case FILE_DIALOG_OPEN:
-				file_dialog->OpenModal("OpenProjectDlg", "Open Project", "UI Project File (*.uip){.uip}", "uieditor\\projects\\");
+				file_browser_.open_dialog("Open Project", "./uieditor/projects/");
+				file_dialog_mode_ = FILE_DIALOG_NONE;
 				break;
 			case FILE_DIALOG_IMAGE:
-				file_dialog->OpenModal("ChooseImageDlg", "Choose Image", ".png", "uieditor\\assets\\images\\");
+				file_browser_.open_dialog("Select Image", "./uieditor/assets/images/");
+				file_dialog_mode_ = FILE_DIALOG_NONE;
+				select_background_image = false;
 				break;
 			case FILE_DIALOG_BACKGROUND_IMAGE:
-				file_dialog->OpenModal("ChooseImageDlg", "Choose Background Image", ".png", "uieditor\\assets\\images\\");
+				file_browser_.open_dialog("Select Image", "./uieditor/assets/images/");
+				file_dialog_mode_ = FILE_DIALOG_NONE;
+				select_background_image = true;
 				break;
 			}
-
-			if (file_dialog_mode_ != FILE_DIALOG_NONE)
-			{
-				auto center = ImGui::GetMainViewport()->GetCenter();
-				ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-				ImGui::SetNextWindowSize(ImVec2(800.0f, 350.0f), ImGuiCond_Appearing);
 			
-				if (file_dialog->Display("SaveProjectDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+			if (file_browser_.show_dialog("Save Project", ImGuiFileBrowser::DialogMode::SAVE, ImVec2(0, 0), ".uip"))
+			{
+				project::save_project(file_browser_.selected_fn);
+			}
+
+			if (file_browser_.show_dialog("Open Project", ImGuiFileBrowser::DialogMode::OPEN, ImVec2(0, 0), ".uip"))
+			{
+				project::load_project(file_browser_.selected_fn);
+			}
+
+			if (file_browser_.show_dialog("Select Image", ImGuiFileBrowser::DialogMode::OPEN, ImVec2(0, 0), ".png"))
+			{
+				auto filename = file_browser_.selected_fn;
+				auto filepath = file_browser_.selected_path;;
+
+				filepath.erase(0, filepath.find(file_browser_.current_path));
+
+				auto* image = renderer::image::register_handle(filename, filepath);
+				if (image)
 				{
-					if (file_dialog->IsOk())
+					if (select_background_image)
 					{
-						project::save_project(ImGuiFileDialog::Instance()->GetCurrentFileName());
+						canvas::background_image_ = image;
 					}
-
-					file_dialog_mode_ = FILE_DIALOG_NONE;
-
-					file_dialog->Close();
-				}
-
-				if (file_dialog->Display("OpenProjectDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
-				{
-					if (file_dialog->IsOk())
+					else
 					{
-						project::load_project(ImGuiFileDialog::Instance()->GetCurrentFileName());
-					}
-
-					file_dialog_mode_ = FILE_DIALOG_NONE;
-
-					file_dialog->Close();
-				}
-
-				if (file_dialog->Display("ChooseImageDlg", ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
-				{
-					if (file_dialog->IsOk())
-					{
-						auto filename = file_dialog->GetCurrentFileName();
-						auto filepath = file_dialog->GetFilePathName();
-
-						filepath.erase(0, filepath.find(file_dialog->GetCurrentDialogPath()));
-
-						auto* image = renderer::image::register_handle(filename, filepath);
-						if (image)
+						if (properties::element_ != nullptr && image)
 						{
-							if (file_dialog_mode_ == FILE_DIALOG_IMAGE)
-							{
-								if (properties::element_ != nullptr && image)
-								{
-									properties::element_->currentAnimationState.image = image;
-								}
-							}
-							else
-							{
-								canvas::background_image_ = image;
-							}
+							properties::element_->currentAnimationState.image = image;
 						}
 					}
-
-					file_dialog_mode_ = FILE_DIALOG_NONE;
-
-					file_dialog->Close();
 				}
 			}
 		}

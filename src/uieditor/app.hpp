@@ -31,6 +31,8 @@ namespace uieditor
 
 		static FileDialogMode file_dialog_mode_;
 
+		static ImGuiFileBrowser file_browser_;
+
 	private:
 		static bool show_imgui_demo_;
 

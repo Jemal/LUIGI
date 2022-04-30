@@ -75,6 +75,7 @@
 #include <misc/imgui_uie.h>
 #include <misc/freetype/imgui_freetype.h>
 #include <misc/cpp/imgui_stdlib.h>
+#include <misc/filebrowser/ImGuiFileBrowser.h>
 #pragma warning(pop)
 
 #include "utils/io.hpp"
