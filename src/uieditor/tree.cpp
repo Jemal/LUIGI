@@ -4,35 +4,9 @@
 
 namespace uieditor
 {
-	UIElement* tree::payload_element_ = nullptr;
-
 	void tree::select_element(UIElement* element)
 	{
 		properties::element_ = element;
-		strcpy(properties::element_name_, element->name.data());
-		strcpy(properties::element_text_, element->text.data());
-	}
-
-	void tree::handle_drop_element_to_parent(UIElement* element)
-	{
-		auto* new_parent = element;
-
-		if (lui::element::is_descendent_of(new_parent, payload_element_))
-		{
-			return;
-		}
-
-		if (payload_element_->parent == new_parent)
-		{
-			return;
-		}
-
-		if (payload_element_->parent)
-		{
-			lui::element::remove_from_parent(payload_element_);
-		}
-
-		lui::element::add_element(new_parent, payload_element_);
 	}
 
 	void tree::display_element_tree(UIElement* element)
@@ -44,64 +18,9 @@ namespace uieditor
 			select_element(element);
 		}
 
-		if (ImGui::BeginDragDropSource())
-		{
-			payload_element_ = element;
-
-			ImGui::SetDragDropPayload("ELEMENT", NULL, 0);
-			ImGui::Text(payload_element_->name.data());
-			ImGui::EndDragDropSource();
-		}
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (auto* payload = ImGui::AcceptDragDropPayload("ELEMENT"))
-			{
-				handle_drop_element_to_parent(element);
-			}
-			ImGui::EndDragDropTarget();
-		}
-
 		ImGui::TableNextColumn();
 
-		char buf[64];
-		sprintf(buf, "##%sType", element->name.data());
-
-		ImGui::PushItemWidth(125);
-
-		if (ImGui::BeginCombo(buf, lui::element::type_to_string(element->type).data()))
-		{
-			for (auto i = 0; i < UIElementType::UI_TYPE_COUNT; i++)
-			{
-				if (ImGui::Selectable(lui::element::type_to_string(i).data()))
-				{
-					element->type = i;
-
-					if (i == UIElementType::UI_IMAGE)
-					{
-						element->currentAnimationState.image = renderer::image::images_.at(0).get();
-
-						element->renderFunction = lui::element::ui_image_render;
-					}
-					else if (i == UIElementType::UI_TEXT)
-					{
-						element->currentAnimationState.font = &renderer::font::fonts_.at(0);
-
-						element->renderFunction = lui::element::ui_text_render;
-
-						strcpy(properties::element_text_, "UIText");
-					}
-					else
-					{
-						element->renderFunction = nullptr;
-					}
-				}
-			}
-
-			ImGui::EndCombo();
-		}
-
-		ImGui::PopItemWidth();
+		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), lui::element::type_to_string(element->type).data());
 	}
 
 	void tree::display_element(UIElement* element)

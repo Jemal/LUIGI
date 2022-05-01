@@ -11,6 +11,8 @@ namespace uieditor
 	ProjectState project::state_ = PROJECT_NEW;
 	std::string project::project_name_ = "";
 
+	bool project::show_settings_ = false;
+
 	namespace
 	{
 		static std::vector<std::string> saved_elements_;
@@ -86,7 +88,14 @@ namespace uieditor
 
 			auto new_element = lui::core::element_pool_.at(lui::core::element_pool_.size());
 
-			lui::element::add_element(element, new_element);
+			if (element == nullptr)
+			{
+				element = new_element;
+			}
+			else
+			{
+				lui::element::add_element(element, new_element);
+			}
 
 			new_element->name = name;
 
@@ -131,13 +140,13 @@ namespace uieditor
 
 				new_element->renderFunction = lui::element::ui_image_render;
 			}
-			else if (element->type == UI_TEXT)
+			else if (new_element->type == UI_TEXT)
 			{
-				element->currentAnimationState.alignment = (*element_data)["Alignment"];
+				new_element->currentAnimationState.alignment = (*element_data)["Alignment"];
 
 				auto font_name = (*element_data)["Font"];
 
-				element->text = (*element_data)["Text"];
+				new_element->text = (*element_data)["Text"];
 
 				new_element->renderFunction = lui::element::ui_text_render;
 			}
@@ -163,7 +172,7 @@ namespace uieditor
 	{
 		saved_elements_.clear();
 
-		for (auto i = 1; i < lui::core::allocated_elements_; i++)
+		for (auto i = 0; i < lui::core::allocated_elements_; i++)
 		{
 			auto element = lui::core::element_pool_.at(i);
 			lui::element::remove_element(element);
@@ -172,8 +181,7 @@ namespace uieditor
 		canvas::size_.x = 1280.0f;
 		canvas::size_.y = 720.0f;
 
-		auto root = lui::core::get_root_element();
-		lui::element::invalidate_layout(root);
+		lui::core::create_root();
 
 		renderer::image::images_.clear();
 
@@ -206,7 +214,7 @@ namespace uieditor
 		// elements
 		auto element_pool = &project_data["Elements"];
 
-		for (auto i = 1; i < lui::core::allocated_elements_; i++)
+		for (auto i = 0; i < lui::core::allocated_elements_; i++)
 		{
 			auto element = lui::core::element_pool_.at(i);
 
@@ -229,7 +237,7 @@ namespace uieditor
 	void project::load_project(std::string name)
 	{
 		// clear element pool
-		for (auto i = 1; i < lui::core::allocated_elements_; i++)
+		for (auto i = 0; i < lui::core::allocated_elements_; i++)
 		{
 			auto element = lui::core::element_pool_.at(i);
 			lui::element::remove_element(element);
@@ -246,23 +254,18 @@ namespace uieditor
 		{
 			auto json_data = nlohmann::ordered_json::parse(project_file);
 
-			auto root = lui::core::get_root_element();
-
 			// load canvas settings
 			canvas::size_.x = json_data["Canvas"]["Width"];
 			canvas::size_.y = json_data["Canvas"]["Height"];
 
-			lui::element::invalidate_layout(root);
-
 			// load elements
-			auto element_pool_data = &json_data["Elements"];
-
-			for (auto& item : element_pool_data->items())
+			auto elements = &json_data["Elements"];
+			for (auto& item : elements->items())
 			{
 				auto element_name = item.key();
-				auto val = item.value();
+				auto element = item.value();
 
-				load_element_data(root, element_name, &val);
+				load_element_data(nullptr, element_name, &element);
 			}
 
 			state_ = PROJECT_SAVED;
@@ -284,11 +287,19 @@ namespace uieditor
 	{
 		if (state_ == PROJECT_SAVED)
 		{
-			printf("project modified\n");
-
 			state_ = PROJECT_MODIFIED;
 
 			set_project_name(project_name_, true);
+		}
+	}
+
+	void project::draw_settings()
+	{
+		ImGui::SetNextWindowSize(ImVec2(350.0f, 250.0f), ImGuiCond_FirstUseEver);
+
+		if (ImGui::Begin("Settings", &show_settings_, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+		{
+			ImGui::End();
 		}
 	}
 }

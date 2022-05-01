@@ -4,6 +4,7 @@
 #include "uieditor/rc/resource.hpp"
 #include "uieditor/log.hpp"
 #include "misc/filebrowser/ImGuiFileBrowser.h"
+#include "utils/json.hpp"
 
 namespace renderer
 {
@@ -26,6 +27,38 @@ namespace renderer
 		text_size.x = ((float)(int)(text_size.x + 0.99999f));
 
 		return text_size;
+	}
+
+	void font::load_font_settings()
+	{
+		auto path = "uieditor\\config\\fonts.json";
+		if (!utils::io::file_exists(path))
+		{
+			uieditor::log::print(uieditor::log_message_type::log_error, "Failed to load font settings for project");
+			return;
+		}
+
+		auto font_settings = utils::io::read_file(path);
+		if (!font_settings.empty())
+		{
+			auto data = nlohmann::json::parse(font_settings);
+
+			for (auto& item : data.items())
+			{
+				auto values = item.value();
+
+				auto font_name = values["Name"];
+				auto font_path = values["Path"];
+				auto font_size = values["Size"];
+
+				if (font_name.is_null() || font_path.is_null() || font_size.is_null())
+				{
+					return;
+				}
+
+				font::register_font(font_name, font_path, font_size);
+			}
+		}
 	}
 
 	void font::register_default_font()
@@ -63,8 +96,7 @@ namespace renderer
 
 	void font::register_font(std::string name, std::string path, int size)
 	{
-		auto filepath = utils::string::va("uieditor\\assets\\fonts\\%s.ttf", path.data());
-		if (!utils::io::file_exists(filepath))
+		if (!utils::io::file_exists(path))
 		{
 			uieditor::log::print(uieditor::log_message_type::log_error, "Failed to register font '%s' (file not found)", path.data());
 			return;
@@ -78,9 +110,7 @@ namespace renderer
 		cfg.SizePixels = size;
 		cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_NoHinting;
 
-		font.handle = ImGui::GetIO().Fonts->AddFontFromFileTTF(filepath, size, &cfg);
-
-		uieditor::log::print(uieditor::log_normal, "Registered font '%s'", font.name.data());
+		font.handle = ImGui::GetIO().Fonts->AddFontFromFileTTF(path.data(), size, &cfg);
 
 		fonts_.push_back(font);
 	}

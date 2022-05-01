@@ -30,6 +30,11 @@ namespace uieditor
 
 	void canvas::push_stencil(float left, float top, float right, float bottom)
 	{
+		left *= zoom_pct_;
+		top *= zoom_pct_;
+		right *= zoom_pct_;
+		bottom *= zoom_pct_;
+
 		draw_list_->PushClipRect(ImVec2(left + region_.x, region_.y + top), ImVec2(right + region_.x, bottom + region_.y), true);
 	}
 
@@ -95,7 +100,7 @@ namespace uieditor
 
 	void canvas::draw_grid()
 	{
-		auto color = IM_COL32(20, 255, 50, 100);
+		auto color = IM_COL32(200, 200, 200, 75);
 		auto step = (size_.x * zoom_pct_) / app::grid_step_;
 
 		for (auto x = fmodf(0.0f, step); x < (size_.x * zoom_pct_); x += step)
@@ -489,7 +494,10 @@ namespace uieditor
 
 				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
-					clicked_in_element_ = clicked_in_element_bounds(root, mouse_pos_, false);
+					if (hover_mode_ == UIAnchorType::ANCHOR_NONE)
+					{
+						clicked_in_element_ = clicked_in_element_bounds(root, mouse_pos_, false);
+					}
 
 					if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 					{
@@ -517,7 +525,7 @@ namespace uieditor
 
 			if (is_active)
 			{
-				if (clicked_in_element_ && hovered_element_)
+				if (/*clicked_in_element_ &&*/ hovered_element_)
 				{
 					// dont want to move/resize root
 					if (properties::element_ != root)
@@ -528,8 +536,8 @@ namespace uieditor
 			}
 
 			// Draw border and background color
-			draw_list_->AddRectFilled(ImVec2(region_.x, region_.y), ImVec2(region_.z, region_.w), IM_COL32(20, 20, 20, 255));
-			draw_list_->AddRect(ImVec2(region_.x - 1, region_.y - 1), ImVec2(region_.z + 1, region_.w + 1), IM_COL32(255, 255, 255, 100));
+			draw_list_->AddRectFilled(ImVec2(region_.x, region_.y), ImVec2(region_.z, region_.w), IM_COL32(40, 40, 40, 255));
+			//draw_list_->AddRect(ImVec2(region_.x - 1, region_.y - 1), ImVec2(region_.z + 1, region_.w + 1), IM_COL32(255, 255, 255, 100));
 
 			// keep everything drawn inside the canvas
 			draw_list_->PushClipRect(ImVec2(region_.x, region_.y), ImVec2(region_.z, region_.w), true);

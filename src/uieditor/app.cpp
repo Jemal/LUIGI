@@ -20,6 +20,9 @@ namespace uieditor
 
 	bool app::show_imgui_demo_ = false;
 
+	bool app::added_font_ = false;
+	AppState app::state_ = APP_DEFAULT;
+
 	HWND app::hwnd_;
 	WNDCLASSEX app::wc_;
 
@@ -37,7 +40,7 @@ namespace uieditor
 
 		lui::core::init();
 
-		project::set_project_name("Untitled", true);
+		project::set_project_name("Untitled", false);
 
 		renderer::engine::frame();
 
@@ -87,17 +90,33 @@ namespace uieditor
 				return 0;
 			}
 			break;
+		case WM_CLOSE:
+			if (project::state_ == PROJECT_MODIFIED)
+			{
+				app::state_ = APP_CLOSING;
+				return 0;
+			}
+			break;
 		case WM_DESTROY:
 			::PostQuitMessage(0);
-			return 0;
+			break;
 		}
 
 		return DefWindowProcA(hWnd, msg, wParam, lParam);
 	}
 
+	bool app::check_quit()
+	{
+		return state_ == APP_SHUTDOWN;
+	}
+
 	void app::frame()
 	{
-		menu_bar();
+		menubar();
+
+		file_browser();
+
+		handle_shortcuts();
 
 		ImGui::DockSpaceOverViewport();
 
@@ -114,69 +133,66 @@ namespace uieditor
 
 		tree::draw();
 
-		// file browser
+		if (project::show_settings_)
 		{
-			static bool select_background_image = false;
+			project::draw_settings();
+		}
 
-			switch (file_dialog_mode_)
+		if (app::state_ == APP_CLOSING)
+		{
+			ImGui::OpenPopup("Unsaved Changes");
+		}
+
+		ImVec2 window_size(350, 0);
+		ImGui::SetNextWindowSize(window_size);
+		if (ImGui::BeginPopupModal("Unsaved Changes", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize))
+		{
+			ImGui::TextWrapped("Do you want to save the changes you made to %s?", project::project_name_.data());
+
+			ImGui::Separator();
+
+			auto save_size = ImGui::GetButtonSize("Save");
+			auto dont_save_size = ImGui::GetButtonSize("Don't Save");
+			auto cancel_size = ImGui::GetButtonSize("Cancel");
+
+			float buttons_width = save_size.x + dont_save_size.x + cancel_size.x + ImGui::GetStyle().ItemSpacing.x;
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetWindowWidth() / 2.0f - buttons_width / 2.0f - ImGui::GetStyle().WindowPadding.x);
+
+			if (ImGui::Button("Save", save_size))
 			{
-			case FILE_DIALOG_SAVE:
-				file_browser_.open_dialog("Save Project", "./uieditor/projects/");
-				file_dialog_mode_ = FILE_DIALOG_NONE;
-				break;
-			case FILE_DIALOG_OPEN:
-				file_browser_.open_dialog("Open Project", "./uieditor/projects/");
-				file_dialog_mode_ = FILE_DIALOG_NONE;
-				break;
-			case FILE_DIALOG_IMAGE:
-				file_browser_.open_dialog("Select Image", "./uieditor/assets/images/");
-				file_dialog_mode_ = FILE_DIALOG_NONE;
-				select_background_image = false;
-				break;
-			case FILE_DIALOG_BACKGROUND_IMAGE:
-				file_browser_.open_dialog("Select Image", "./uieditor/assets/images/");
-				file_dialog_mode_ = FILE_DIALOG_NONE;
-				select_background_image = true;
-				break;
-			}
-			
-			if (file_browser_.show_dialog("Save Project", ImGuiFileBrowser::DialogMode::SAVE, ImVec2(0, 0), ".uip"))
-			{
-				project::save_project(file_browser_.selected_fn);
-			}
-
-			if (file_browser_.show_dialog("Open Project", ImGuiFileBrowser::DialogMode::OPEN, ImVec2(0, 0), ".uip"))
-			{
-				project::load_project(file_browser_.selected_fn);
-			}
-
-			if (file_browser_.show_dialog("Select Image", ImGuiFileBrowser::DialogMode::OPEN, ImVec2(0, 0), ".png"))
-			{
-				auto filename = file_browser_.selected_fn;
-				auto filepath = file_browser_.selected_path;;
-
-				filepath.erase(0, filepath.find(file_browser_.current_path));
-
-				auto* image = renderer::image::register_handle(filename, filepath);
-				if (image)
+				if (project::state_ == PROJECT_NEW)
 				{
-					if (select_background_image)
-					{
-						canvas::background_image_ = image;
-					}
-					else
-					{
-						if (properties::element_ != nullptr && image)
-						{
-							properties::element_->currentAnimationState.image = image;
-						}
-					}
+					file_dialog_mode_ = FILE_DIALOG_SAVE;
+					app::state_ = APP_SHUTDOWN_AFTER_SAVE;
 				}
+				else
+				{
+					project::save_project(project::project_name_);
+					app::state_ = APP_SHUTDOWN;
+				}
+
+				ImGui::CloseCurrentPopup();
 			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Don't Save", dont_save_size))
+			{
+				app::state_ = APP_SHUTDOWN;
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", cancel_size))
+			{
+				app::state_ = APP_DEFAULT;
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
 		}
 	}
 
-	void app::menu_bar()
+	void app::menubar()
 	{
 		if (ImGui::BeginMainMenuBar())
 		{
@@ -206,9 +222,26 @@ namespace uieditor
 					}
 				}
 
-				if (ImGui::MenuItem("Save As"))
+				if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S"))
 				{
 					file_dialog_mode_ = FILE_DIALOG_SAVE;
+				}
+
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Exit"))
+				{
+					if (project::state_ == PROJECT_MODIFIED)
+					{
+						app::state_ = APP_CLOSING;
+					}
+					else
+					{
+						app::state_ = APP_SHUTDOWN;
+					}
+
+					//added_font_ = true;
+					//renderer::font::register_font("HudDigitalExtraBigFont", "iw6\\iw6_digital", 80.0f);
 				}
 
 				ImGui::EndMenu();
@@ -233,15 +266,21 @@ namespace uieditor
 				ImGui::Separator();
 
 				ImGui::MenuItem("Grid", "ALT+G", &show_grid_);
-				if (ImGui::BeginMenu("Grid Step"))
-				{
-					ImGui::InputFloat("##GridStep", &grid_step_, 1.0f, 2.0f, "%.0f");
 
-					ImGui::EndMenu();
+				if (ImGui::MenuItem("Increase Step", "["))
+				{
+					grid_step_ -= 2.0f;
+				}
+
+				if (ImGui::MenuItem("Decrease Step", "]"))
+				{
+					grid_step_ += 2.0f;
 				}
 
 				ImGui::EndMenu();
 			}
+
+			ImGui::MenuItem("Settings", NULL, &project::show_settings_);
 
 			if (ImGui::BeginMenu("Help"))
 			{
@@ -251,6 +290,120 @@ namespace uieditor
 			}
 
 			ImGui::EndMainMenuBar();
+		}
+	}
+
+	void app::file_browser()
+	{
+		static bool select_background_image = false;
+
+		switch (file_dialog_mode_)
+		{
+		case FILE_DIALOG_SAVE:
+			file_browser_.open_dialog("Save Project", "./uieditor/projects/");
+			file_dialog_mode_ = FILE_DIALOG_NONE;
+			break;
+		case FILE_DIALOG_OPEN:
+			file_browser_.open_dialog("Open Project", "./uieditor/projects/");
+			file_dialog_mode_ = FILE_DIALOG_NONE;
+			break;
+		case FILE_DIALOG_IMAGE:
+			file_browser_.open_dialog("Select Image", "./uieditor/assets/images/");
+			file_dialog_mode_ = FILE_DIALOG_NONE;
+			select_background_image = false;
+			break;
+		case FILE_DIALOG_BACKGROUND_IMAGE:
+			file_browser_.open_dialog("Select Image", "./uieditor/assets/images/");
+			file_dialog_mode_ = FILE_DIALOG_NONE;
+			select_background_image = true;
+			break;
+		}
+
+		if (file_browser_.show_dialog("Save Project", ImGuiFileBrowser::DialogMode::SAVE, ImVec2(0, 0), ".uip"))
+		{
+			project::save_project(file_browser_.selected_fn);
+
+			if (app::state_ == APP_SHUTDOWN_AFTER_SAVE)
+			{
+				app::state_ = APP_SHUTDOWN;
+			}
+		}
+
+		if (file_browser_.show_dialog("Open Project", ImGuiFileBrowser::DialogMode::OPEN, ImVec2(0, 0), ".uip"))
+		{
+			project::load_project(file_browser_.selected_fn);
+		}
+
+		if (file_browser_.show_dialog("Select Image", ImGuiFileBrowser::DialogMode::OPEN, ImVec2(0, 0), ".png"))
+		{
+			auto filename = file_browser_.selected_fn;
+			auto filepath = file_browser_.selected_path;;
+
+			filepath.erase(0, filepath.find(file_browser_.current_path));
+
+			auto* image = renderer::image::register_handle(filename, filepath);
+			if (image)
+			{
+				if (select_background_image)
+				{
+					canvas::background_image_ = image;
+				}
+				else
+				{
+					if (properties::element_ != nullptr && image)
+					{
+						properties::element_->currentAnimationState.image = image;
+					}
+				}
+			}
+		}
+	}
+
+	void app::handle_shortcuts()
+	{
+		if (!file_browser_.active)
+		{
+			if (ImGui::IsKeyDown(ImGuiKey_ModAlt))
+			{
+				if (ImGui::IsKeyPressed(ImGuiKey_G, false))
+				{
+					show_grid_ = !show_grid_;
+				}
+			}
+			else if (ImGui::IsKeyDown(ImGuiKey_ModCtrl))
+			{
+				if (ImGui::IsKeyPressed(ImGuiKey_N, false))
+				{
+					project::new_project();
+				}
+				else if (ImGui::IsKeyPressed(ImGuiKey_O, false))
+				{
+					file_dialog_mode_ = FILE_DIALOG_OPEN;
+				}
+				else if (ImGui::IsKeyPressed(ImGuiKey_S, false))
+				{
+					if (project::state_ == PROJECT_NEW || ImGui::IsKeyDown(ImGuiKey_ModShift))
+					{
+						file_dialog_mode_ = FILE_DIALOG_SAVE;
+					}
+					else
+					{
+						project::save_project(project::project_name_);
+					}
+				}
+				else if (ImGui::IsKeyPressed(ImGuiKey_B, false))
+				{
+					show_background_ = !show_background_;
+				}
+			}
+			else if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket, false))
+			{
+				grid_step_ -= 2.0f;
+			}
+			else if (ImGui::IsKeyPressed(ImGuiKey_RightBracket, false))
+			{
+				grid_step_ += 2.0f;
+			}
 		}
 	}
 }

@@ -164,7 +164,10 @@ namespace lui
 	{
 		remove_children(element);
 
-		remove_from_parent(element);
+		if (element->parent)
+		{
+			remove_from_parent(element);
+		}
 
 		core::element_pool_.free(element);
 
@@ -661,6 +664,8 @@ namespace lui
 				uieditor::tree::select_element(element);
 			}
 
+			auto is_root_element = element == lui::core::get_root_element();
+
 			if (ImGui::BeginMenu("Add"))
 			{
 				if (ImGui::MenuItem("Element"))
@@ -686,54 +691,53 @@ namespace lui
 
 					new_element->type = UI_TEXT;
 					new_element->renderFunction = lui::element::ui_text_render;
+					new_element->text = "New"s;
 				}
 
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::Selectable("Remove"))
+			if (!is_root_element)
 			{
-				auto parent = element->parent;
-
-				lui::element::remove_element(element);
-
-				if (parent)
+				if (ImGui::Selectable("Remove"))
 				{
-					uieditor::properties::element_ = parent;
+					auto parent = element->parent;
+
+					lui::element::remove_element(element);
+
+					if (parent)
+					{
+						uieditor::properties::element_ = parent;
+					}
+					else
+					{
+						uieditor::properties::element_ = lui::core::element_pool_.at(0);
+					}
 				}
-				else
+
+				if (ImGui::Selectable("Fit to parent"))
 				{
-					uieditor::properties::element_ = lui::core::element_pool_.at(0);
-				}
-			}
+					auto* parent = element->parent;
+					if (parent)
+					{
+						element->currentAnimationState.leftAnchor = true;
+						element->currentAnimationState.topAnchor = true;
+						element->currentAnimationState.rightAnchor = true;
+						element->currentAnimationState.bottomAnchor = true;
 
-			if (ImGui::Selectable("Fit to parent"))
-			{
-				auto* parent = element->parent;
-				if (parent)
-				{
-					element->currentAnimationState.leftAnchor = true;
-					element->currentAnimationState.topAnchor = true;
-					element->currentAnimationState.rightAnchor = true;
-					element->currentAnimationState.bottomAnchor = true;
+						element->currentAnimationState.leftPx = 0.0f;
+						element->currentAnimationState.topPx = 0.0f;
+						element->currentAnimationState.rightPx = 0.0f;
+						element->currentAnimationState.bottomPx = 0.0f;
 
-					element->currentAnimationState.leftPx = 0.0f;
-					element->currentAnimationState.topPx = 0.0f;
-					element->currentAnimationState.rightPx = 0.0f;
-					element->currentAnimationState.bottomPx = 0.0f;
-
-					lui::element::invalidate_layout(element);
+						lui::element::invalidate_layout(element);
+					}
 				}
 			}
 
 			if (ImGui::BeginMenu("Edit Name"))
 			{
-				ImGui::InputText("##id", uieditor::properties::element_name_, IM_ARRAYSIZE(uieditor::properties::element_name_));
-
-				if (element->name.data() != uieditor::properties::element_name_)
-				{
-					element->name = uieditor::properties::element_name_;
-				}
+				ImGui::InputText("##id", &element->name);
 
 				ImGui::EndMenu();
 			}

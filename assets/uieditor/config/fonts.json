@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "Escom",
+        "Path": "./uieditor/assets/fonts/t7/escom.ttf",
+        "Size": 40
+    },
+    {
+        "Name": "DigitalExtraBig",
+        "Path": "./uieditor/assets/fonts/iw6/iw6_digital.ttf",
+        "Size": 80
+    }
+]

@@ -29,6 +29,8 @@ ImGuiFileBrowser::ImGuiFileBrowser()
 {
 	filter_mode = FilterMode_Files | FilterMode_Dirs;
 
+	active = false;
+
 	show_inputbar_combobox = false;
 	validate_file = false;
 	show_hidden = false;
@@ -78,6 +80,8 @@ void ImGuiFileBrowser::clearFileList()
 
 void ImGuiFileBrowser::closeDialog()
 {
+	active = false;
+
 	valid_types = "";
 	valid_exts.clear();
 	selected_ext_idx = 0;
@@ -109,6 +113,8 @@ void ImGuiFileBrowser::open_dialog(std::string label, std::string dir)
 {
 	ImGui::OpenPopup(label.data());
 	this->current_path = dir;
+
+	active = true;
 }
 
 bool ImGuiFileBrowser::show_dialog(const std::string& label, const DialogMode mode, const ImVec2& sz_xy, const std::string& valid_types)

@@ -19,6 +19,8 @@ namespace renderer
 		static void register_font(std::string name, std::string path, int height);
 
 		static ImVec2 get_text_size(const char* text, renderer::font_t* font, float font_height, float wrap_width);
+
+		static void load_font_settings();
 	
 	private:
 		static std::string default_font;

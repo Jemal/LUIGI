@@ -9,8 +9,6 @@
 namespace uieditor
 {
 	UIElement* properties::element_ = nullptr;
-	char properties::element_name_[32] = {};
-	char properties::element_text_[256] = {};
 
 	float properties::input_fast_step_ = 10.0f;
 
@@ -74,6 +72,13 @@ namespace uieditor
 		return ImGui::InputText(utils::string::va("##%s", label), buf, buf_size);
 	}
 
+	bool properties::text_property(const char* label, std::string* string)
+	{
+		begin_property(label);
+
+		return ImGui::InputText(utils::string::va("##%s", label), string);
+	}
+
 	void properties::draw_image_properties()
 	{
 		if (button_property("Image", element_->currentAnimationState.image == nullptr ? "Select..." : element_->currentAnimationState.image->name.data()))
@@ -116,12 +121,8 @@ namespace uieditor
 			ImGui::EndCombo();
 		}
 
-		text_property("Text:", element_text_, IM_ARRAYSIZE(element_text_));
-
-		if (element_->text.data() != element_text_)
+		if (text_property("Text:", &element_->text))
 		{
-			element_->text = element_text_;
-
 			lui::element::invalidate_layout(element_);
 		}
 	}
@@ -135,6 +136,21 @@ namespace uieditor
 
 		if (input_property("Height:", ImGuiDataType_::ImGuiDataType_Float, &canvas::size_.y, 1.0f, input_fast_step_))
 		{
+			lui::element::invalidate_layout(element_);
+		}
+
+		auto uses_stencil = (element_->currentAnimationState.flags & AS_STENCIL) != 0;
+		if (bool_property("Stencil", &uses_stencil))
+		{
+			if (uses_stencil)
+			{
+				element_->currentAnimationState.flags |= AS_STENCIL;
+			}
+			else
+			{
+				element_->currentAnimationState.flags &= ~AS_STENCIL;
+			}
+
 			lui::element::invalidate_layout(element_);
 		}
 	}
@@ -226,21 +242,30 @@ namespace uieditor
 		{
 			if (element_ != nullptr)
 			{
-				if (ImGui::BeginTable("label_property", 2, ImGuiTableFlags_NoSavedSettings))
+				auto root = lui::core::get_root_element();
+				auto is_selected_element_root = element_ == root;
+
+				ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
+
+				if (ImGui::TreeNode(is_selected_element_root ? "Global Properties" : "Base Properties"))
 				{
-					ImGui::TableSetupColumn("##Label", ImGuiTableColumnFlags_WidthFixed, 100);
-
-					auto root = lui::core::get_root_element();
-					if (element_ == root)
+					if (ImGui::BeginTable("label_property", 2, ImGuiTableFlags_NoSavedSettings))
 					{
-						draw_canvas_properties();
-					}
-					else
-					{
-						draw_element_properties();
+						ImGui::TableSetupColumn("##Label", ImGuiTableColumnFlags_WidthFixed, 100);
+
+						if (is_selected_element_root)
+						{
+							draw_canvas_properties();
+						}
+						else
+						{
+							draw_element_properties();
+						}
+
+						ImGui::EndTable();
 					}
 
-					ImGui::EndTable();
+					ImGui::TreePop();
 				}
 			}
 		}

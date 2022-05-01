@@ -107,14 +107,7 @@ namespace renderer
 		ImGui::StyleUIE();
 
 		font::register_default_font();
-
-		// register fonts here or else death
-		// need a better way to register fonts since hardcoding them is dumb
-		font::register_font("HudDigitalSmallFont", "iw6\\iw6_digital", 20.0f);
-		font::register_font("HudDigitalNormalFont", "iw6\\iw6_digital", 26.0f);
-		font::register_font("HudDigitalBigFont", "iw6\\iw6_digital", 30.0f);
-		font::register_font("HudDigitalExtraBigFont", "iw6\\iw6_digital", 80.0f);
-		font::register_font("Escom", "t7\\escom", 40.0f);
+		font::load_font_settings();
 
 		ImGui_ImplWin32_Init(uieditor::app::hwnd_);
 		ImGui_ImplDX11_Init(globals_.device, globals_.device_context);
@@ -151,7 +144,7 @@ namespace renderer
 				TranslateMessage(&msg);
 				DispatchMessageA(&msg);
 
-				if (msg.message == WM_QUIT)
+				if (msg.message == WM_QUIT || uieditor::app::check_quit())
 				{
 					done = true;
 				}
@@ -160,6 +153,15 @@ namespace renderer
 			if (done)
 			{
 				break;
+			}
+
+			if (uieditor::app::added_font_)
+			{
+				renderer::font::register_font("HudDigitalExtraBigFont", "iw6\\iw6_digital", 80.0f);
+
+				ImGui_ImplDX11_InvalidateDeviceObjects();
+
+				uieditor::app::added_font_ = false;
 			}
 
 			ImGui_ImplDX11_NewFrame();

@@ -32,10 +32,12 @@ public:
 	 * Should only be accessed when above functions return true else may contain garbage.
 	 */
 
+	bool active;
+
 	std::string current_path;
 	std::string selected_fn;
 	std::string selected_path;
-	std::string ext;    // Store the saved file extension
+	std::string ext;	// Store the saved file extension
 
 
 private:

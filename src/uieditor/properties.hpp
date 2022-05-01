@@ -8,8 +8,6 @@ namespace uieditor
 		static void draw();
 
 		static UIElement* element_;
-		static char element_name_[32];
-		static char element_text_[256];
 
 	private:
 		static float input_fast_step_;
@@ -23,6 +21,7 @@ namespace uieditor
 		static bool combo_property(const char* label, const char* preview_value);
 		static bool color_property(const char* label, float* color);
 		static bool text_property(const char* label, char* buf, size_t buf_size);
+		static bool text_property(const char* label, std::string* string);
 
 		static void draw_image_properties();
 		static void draw_text_properties();
