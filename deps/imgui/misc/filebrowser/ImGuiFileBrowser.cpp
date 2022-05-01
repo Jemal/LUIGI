@@ -126,7 +126,7 @@ bool ImGuiFileBrowser::show_dialog(const std::string& label, const DialogMode mo
 	ImGui::SetNextWindowSizeConstraints(min_size, max_size);
 
 	auto center = ImGui::GetMainViewport()->GetCenter();
-	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	ImGui::SetNextWindowSize(ImVec2(800.0f, 350.0f), ImGuiCond_Appearing);
 
 	//Set Proper Filter Mode.
