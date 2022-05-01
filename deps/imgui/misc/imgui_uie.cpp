@@ -109,14 +109,15 @@ namespace ImGui
 		colors[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.24f, 0.75f, 1.00f);
 		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.08f, 0.11f, 0.23f, 1.00f);
 
+		// grey/dark
 		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.38f, 0.41f, 0.55f, 0.40f);
 		colors[ImGuiCol_FrameBgActive] = ImVec4(0.52f, 0.52f, 0.62f, 0.67f);
-		colors[ImGuiCol_TitleBgActive] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.17f, 0.17f, 0.17f, 1.00f);
 		colors[ImGuiCol_CheckMark] = ImVec4(0.78f, 0.81f, 0.87f, 1.00f);
 		colors[ImGuiCol_SliderGrab] = ImVec4(0.39f, 0.43f, 0.53f, 1.00f);
 		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.20f, 0.24f, 0.32f, 1.00f);
 		colors[ImGuiCol_Button] = ImVec4(0.49f, 0.49f, 0.49f, 0.40f);
-		colors[ImGuiCol_ButtonHovered] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
 		colors[ImGuiCol_ButtonActive] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
 		colors[ImGuiCol_Header] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
 		colors[ImGuiCol_HeaderHovered] = ImVec4(0.45f, 0.45f, 0.45f, 0.80f);
