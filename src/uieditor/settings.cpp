@@ -127,7 +127,7 @@ namespace uieditor
 					ImGui::TableNextColumn();
 
 					char buf[64];
-					sprintf(buf, "##%sSize", font->name.data()); // ### operator override ID ignoring the preceding label
+					sprintf(buf, "##%sSize", font->name.data());
 
 					ImGui::PushItemWidth(-1);
 
