@@ -5,6 +5,7 @@
 #include "log.hpp"
 #include "project.hpp"
 #include "properties.hpp"
+#include "settings.hpp"
 
 namespace uieditor
 {
@@ -95,7 +96,7 @@ namespace uieditor
 		{
 			for (auto i = 0; i < renderer::font::fonts_.size(); i++)
 			{
-				auto* font = &renderer::font::fonts_.at(i);
+				auto* font = renderer::font::fonts_.at(i).get();
 
 				ImGui::PushID(i);
 

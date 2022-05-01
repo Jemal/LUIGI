@@ -3,6 +3,7 @@
 #include "uieditor/canvas.hpp"
 #include "uieditor/project.hpp"
 #include "uieditor/properties.hpp"
+#include "uieditor/settings.hpp"
 #include "uieditor/tree.hpp"
 
 namespace lui
@@ -639,7 +640,7 @@ namespace lui
 
 	void element::ui_text_render(UIElement* element, UIElement* root, float red, float green, float blue, float alpha)
 	{
-		if (element->currentAnimationState.font == NULL)
+		if (element->currentAnimationState.font == NULL || element->currentAnimationState.font->handle == NULL)
 		{
 			return;
 		}

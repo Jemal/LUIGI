@@ -5,6 +5,7 @@
 #include "log.hpp"
 #include "project.hpp"
 #include "properties.hpp"
+#include "settings.hpp"
 #include "renderer/image.hpp"
 
 namespace uieditor
@@ -77,6 +78,13 @@ namespace uieditor
 
 	void canvas::draw_text(UIElement* element, float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float wrap_width, int alignment)
 	{
+		auto handle = font->handle;
+
+		if (handle == NULL)
+		{
+			return;
+		}
+
 		x *= zoom_pct_;
 		y *= zoom_pct_;
 		wrap_width *= zoom_pct_;
@@ -230,7 +238,7 @@ namespace uieditor
 		auto right = width >= 0.0f ? scaled_right : scaled_left;
 		auto bottom = height >= 0.0f ? scaled_bottom : scaled_top;
 
-		auto radius = 20.0f;
+		auto radius = 10.0f;
 
 		auto clicked_left = mouse_pos.x >= left && mouse_pos.x <= left + radius;
 		auto clicked_top = mouse_pos.y >= top && mouse_pos.y <= top + radius;
@@ -573,13 +581,13 @@ namespace uieditor
 
 			// draw zoom pct
 			{
-				auto font = &renderer::font::fonts_.at(0);
+				auto font = ImGui::GetIO().FontDefault;
 
 				auto x = cursor_screen_pos.x;
-				auto y = content_region_max.y - font->handle->FontSize;
+				auto y = content_region_max.y - font->FontSize;
 				auto zoom = utils::string::va("Zoom: %g%%", zoom_pct_ * 100.0f);
 
-				draw_list_->AddText(font->handle, font->handle->FontSize, ImVec2(x, y), IM_COL32(255, 255, 255, 255), zoom);
+				draw_list_->AddText(font, font->FontSize, ImVec2(x, y), IM_COL32(255, 255, 255, 255), zoom);
 			}
 		}
 

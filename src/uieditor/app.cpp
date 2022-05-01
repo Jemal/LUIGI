@@ -4,6 +4,7 @@
 #include "log.hpp"
 #include "project.hpp"
 #include "properties.hpp"
+#include "settings.hpp"
 #include "tree.hpp"
 #include "rc/resource.hpp"
 #include "renderer/engine.hpp"
@@ -20,7 +21,6 @@ namespace uieditor
 
 	bool app::show_imgui_demo_ = false;
 
-	bool app::added_font_ = false;
 	AppState app::state_ = APP_DEFAULT;
 
 	HWND app::hwnd_;
@@ -110,6 +110,11 @@ namespace uieditor
 		return state_ == APP_SHUTDOWN;
 	}
 
+	void app::set_shutdown()
+	{
+		state_ = APP_SHUTDOWN;
+	}
+
 	void app::frame()
 	{
 		menubar();
@@ -133,10 +138,7 @@ namespace uieditor
 
 		tree::draw();
 
-		if (project::show_settings_)
-		{
-			project::draw_settings();
-		}
+		settings::draw();
 
 		if (app::state_ == APP_CLOSING)
 		{
@@ -239,9 +241,6 @@ namespace uieditor
 					{
 						app::state_ = APP_SHUTDOWN;
 					}
-
-					//added_font_ = true;
-					//renderer::font::register_font("HudDigitalExtraBigFont", "iw6\\iw6_digital", 80.0f);
 				}
 
 				ImGui::EndMenu();
@@ -280,7 +279,7 @@ namespace uieditor
 				ImGui::EndMenu();
 			}
 
-			ImGui::MenuItem("Settings", NULL, &project::show_settings_);
+			ImGui::MenuItem("Settings", NULL, &settings::show_settings_);
 
 			if (ImGui::BeginMenu("Help"))
 			{
@@ -317,6 +316,10 @@ namespace uieditor
 			file_dialog_mode_ = FILE_DIALOG_NONE;
 			select_background_image = true;
 			break;
+		case FILE_DIALOG_FONT:
+			file_browser_.open_dialog("Select Font", "./uieditor/assets/fonts/");
+			file_dialog_mode_ = FILE_DIALOG_NONE;
+			break;
 		}
 
 		if (file_browser_.show_dialog("Save Project", ImGuiFileBrowser::DialogMode::SAVE, ImVec2(0, 0), ".uip"))
@@ -337,9 +340,16 @@ namespace uieditor
 		if (file_browser_.show_dialog("Select Image", ImGuiFileBrowser::DialogMode::OPEN, ImVec2(0, 0), ".png"))
 		{
 			auto filename = file_browser_.selected_fn;
-			auto filepath = file_browser_.selected_path;;
+			auto filepath = file_browser_.selected_path;
 
-			filepath.erase(0, filepath.find(file_browser_.current_path));
+			auto current_path = std::filesystem::current_path().string();
+			std::replace(current_path.begin(), current_path.end(), '\\', '/');
+
+			if (filepath.contains(current_path))
+			{
+				filepath.erase(0, current_path.length());
+				filepath.insert(0, ".");
+			}
 
 			auto* image = renderer::image::register_handle(filename, filepath);
 			if (image)
@@ -356,6 +366,22 @@ namespace uieditor
 					}
 				}
 			}
+		}
+
+		if (file_browser_.show_dialog("Select Font", ImGuiFileBrowser::DialogMode::OPEN, ImVec2(0, 0), ".ttf"))
+		{
+			auto filepath = file_browser_.selected_path;
+
+			auto current_path = std::filesystem::current_path().string();
+			std::replace(current_path.begin(), current_path.end(), '\\', '/');
+
+			if (filepath.contains(current_path))
+			{
+				filepath.erase(0, current_path.length());
+				filepath.insert(0, ".");
+			}
+
+			settings::add_new_saved_font_entry(filepath);
 		}
 	}
 

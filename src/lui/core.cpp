@@ -62,6 +62,17 @@ namespace lui
 		}
 	}
 
+	void core::clear_element_pool()
+	{
+		for (auto i = 0; i < lui::core::allocated_elements_; i++)
+		{
+			auto element = lui::core::element_pool_.at(i);
+			lui::element::remove_element(element);
+		}
+
+		lui::core::element_pool_.init();
+	}
+
 	UIElement* core::get_root_element()
 	{
 		if (allocated_elements_ == 0)

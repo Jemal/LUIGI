@@ -107,8 +107,8 @@ struct UIAnimationState
 
 	int alignment;
 
-	renderer::image_t* image;
 	renderer::font_t* font;
+	renderer::image_t* image;
 };
 
 struct UIElement

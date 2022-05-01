@@ -1,6 +1,7 @@
 #include <stdafx.hpp>
 #include "engine.hpp"
 #include "uieditor/app.hpp"
+#include "uieditor/settings.hpp"
 
 namespace renderer
 {
@@ -107,7 +108,7 @@ namespace renderer
 		ImGui::StyleUIE();
 
 		font::register_default_font();
-		font::load_font_settings();
+		uieditor::settings::load_font_settings();
 
 		ImGui_ImplWin32_Init(uieditor::app::hwnd_);
 		ImGui_ImplDX11_Init(globals_.device, globals_.device_context);
@@ -118,14 +119,12 @@ namespace renderer
 
 	void engine::shutdown()
 	{
-		// crashes when attempting to free our custom fonts
-		//ImGui::DestroyContext();
-
-		// force save current settings, this is normally done in DestroyContext
-		ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
+		ImGui::DestroyPlatformWindows();
 
 		ImGui_ImplDX11_Shutdown();
 		ImGui_ImplWin32_Shutdown();
+		
+		ImGui::DestroyContext();
 		
 		cleanup_device();
 
@@ -153,15 +152,6 @@ namespace renderer
 			if (done)
 			{
 				break;
-			}
-
-			if (uieditor::app::added_font_)
-			{
-				renderer::font::register_font("HudDigitalExtraBigFont", "iw6\\iw6_digital", 80.0f);
-
-				ImGui_ImplDX11_InvalidateDeviceObjects();
-
-				uieditor::app::added_font_ = false;
 			}
 
 			ImGui_ImplDX11_NewFrame();

@@ -6,6 +6,7 @@
     "Elements": {
         "UICrewmate": {
             "Type": "UIElement",
+            "Priority": 0,
             "Anchors": [
                 true,
                 true,
@@ -29,6 +30,7 @@
             "Children": {
                 "Body": {
                     "Type": "UIImage",
+                    "Priority": 0,
                     "Anchors": [
                         true,
                         true,
@@ -42,9 +44,9 @@
                         0.0
                     ],
                     "Color": {
-                        "r": 1.0,
-                        "g": 0.25316452980041504,
-                        "b": 0.25316452980041504
+                        "r": 0.4265882670879364,
+                        "g": 0.0,
+                        "b": 0.7567567825317383
                     },
                     "Alpha": 1.0,
                     "Rotation": 0.0,
@@ -56,6 +58,7 @@
                 },
                 "Visor": {
                     "Type": "UIElement",
+                    "Priority": 0,
                     "Anchors": [
                         true,
                         true,
@@ -79,6 +82,7 @@
                     "Children": {
                         "VisorChild0": {
                             "Type": "UIImage",
+                            "Priority": 0,
                             "Anchors": [
                                 true,
                                 true,
@@ -106,6 +110,7 @@
                         },
                         "VisorChild1": {
                             "Type": "UIImage",
+                            "Priority": 0,
                             "Anchors": [
                                 true,
                                 true,
@@ -133,6 +138,7 @@
                         },
                         "VisorChild2": {
                             "Type": "UIImage",
+                            "Priority": 0,
                             "Anchors": [
                                 false,
                                 true,
@@ -140,17 +146,17 @@
                                 false
                             ],
                             "Position": [
-                                -160.0,
+                                -196.0,
                                 45.0,
                                 -42.0,
-                                95.0
+                                118.0
                             ],
                             "Color": {
                                 "r": 1.0,
                                 "g": 1.0,
                                 "b": 1.0
                             },
-                            "Alpha": 0.4399999976158142,
+                            "Alpha": 0.41999998688697815,
                             "Rotation": 0.0,
                             "Stencil": false,
                             "Image": {
@@ -159,6 +165,33 @@
                             }
                         }
                     }
+                },
+                "UICrewmateChild2": {
+                    "Type": "UIText",
+                    "Priority": 0,
+                    "Anchors": [
+                        true,
+                        true,
+                        true,
+                        true
+                    ],
+                    "Position": [
+                        105.0,
+                        363.0,
+                        -105.0,
+                        -92.0
+                    ],
+                    "Color": {
+                        "r": 1.0,
+                        "g": 1.0,
+                        "b": 1.0
+                    },
+                    "Alpha": 1.0,
+                    "Rotation": 0.0,
+                    "Stencil": false,
+                    "Alignment": 0,
+                    "Font": "DigitalExtraBig",
+                    "Text": "AMOGUS"
                 }
             }
         }

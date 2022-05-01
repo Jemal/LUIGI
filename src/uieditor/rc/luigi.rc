@@ -84,7 +84,6 @@ END
 //
 
 ID_ICON							ICON   "luigi.ico"
-ID_DEFAULTFONT                  RCDATA "default.ttf"
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////

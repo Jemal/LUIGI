@@ -5,6 +5,7 @@ namespace renderer
 	struct font_t
 	{
 		std::string name;
+		std::string path;
 		int size;
 		ImFont* handle;
 	};
@@ -12,17 +13,16 @@ namespace renderer
 	class font
 	{
 	public:
-		static std::vector<font_t> fonts_;
+		static std::vector< std::unique_ptr<font_t>> fonts_;
 
 		static void register_default_font();
 
-		static void register_font(std::string name, std::string path, int height);
+		static void register_font(std::string name, std::string path, int size);
+
+		static font_t* get_font_handle(std::string name);
 
 		static ImVec2 get_text_size(const char* text, renderer::font_t* font, float font_height, float wrap_width);
-
-		static void load_font_settings();
 	
 	private:
-		static std::string default_font;
 	};
 }

@@ -18,6 +18,8 @@ namespace lui
 
 		static void create_root();
 
+		static void clear_element_pool();
+
 		static UIElement* get_root_element();
 
 		static UIElementPool element_pool_;

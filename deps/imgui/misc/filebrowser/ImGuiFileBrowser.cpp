@@ -494,6 +494,12 @@ bool ImGuiFileBrowser::renderInputTextAndExtRegion()
 			else
 			{
 				selected_fn = std::string(input_fn);
+
+				if (!selected_fn.ends_with(ext))
+				{
+					selected_fn.append(ext);
+				}
+
 				validate_file = true;
 			}
 		}
@@ -584,6 +590,12 @@ bool ImGuiFileBrowser::renderButtonsAndCheckboxRegion()
 		else if (ImGui::Button("Save", ImVec2(button_width, 0)) && strlen(input_fn) > 0)
 		{
 			selected_fn = std::string(input_fn);
+
+			if (!selected_fn.ends_with(ext))
+			{
+				selected_fn.append(ext);
+			}
+
 			validate_file = true;
 		}
 	}

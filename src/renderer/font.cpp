@@ -1,19 +1,17 @@
 #include <stdafx.hpp>
 #include "engine.hpp"
 #include "font.hpp"
-#include "uieditor/rc/resource.hpp"
 #include "uieditor/log.hpp"
-#include "misc/filebrowser/ImGuiFileBrowser.h"
-#include "utils/json.hpp"
+#include "uieditor/settings.hpp"
+#include "misc/imgui_uie_font.h"
 
 namespace renderer
 {
-	std::string font::default_font;
-	std::vector<font_t> font::fonts_;
+	std::vector< std::unique_ptr<font_t>> font::fonts_;
 
 	ImVec2 font::get_text_size(const char* text, renderer::font_t* font, float font_height, float wrap_width)
 	{
-		if (text == NULL)
+		if (text == NULL || font->handle == NULL)
 		{
 			return ImVec2(0.0f, 0.0f);
 		}
@@ -29,81 +27,38 @@ namespace renderer
 		return text_size;
 	}
 
-	void font::load_font_settings()
-	{
-		auto path = "uieditor\\config\\fonts.json";
-		if (!utils::io::file_exists(path))
-		{
-			uieditor::log::print(uieditor::log_message_type::log_error, "Failed to load font settings for project");
-			return;
-		}
-
-		auto font_settings = utils::io::read_file(path);
-		if (!font_settings.empty())
-		{
-			auto data = nlohmann::json::parse(font_settings);
-
-			for (auto& item : data.items())
-			{
-				auto values = item.value();
-
-				auto font_name = values["Name"];
-				auto font_path = values["Path"];
-				auto font_size = values["Size"];
-
-				if (font_name.is_null() || font_path.is_null() || font_size.is_null())
-				{
-					return;
-				}
-
-				font::register_font(font_name, font_path, font_size);
-			}
-		}
-	}
-
 	void font::register_default_font()
 	{
-		font_t font;
-		font.name = "default";
-		font.size = 18.0f;
+		auto& io = ImGui::GetIO();
 
-		auto font_resource = FindResourceA(GetModuleHandleA(NULL), MAKEINTRESOURCEA(ID_DEFAULTFONT), RT_RCDATA);
-		if (font_resource)
-		{
-			auto handle = LoadResource(nullptr, font_resource);
-			if (handle)
-			{
-				default_font = std::string(LPSTR(LockResource(handle)), SizeofResource(nullptr, font_resource));
+		ImFontConfig cfg;
+		cfg.SizePixels = 18.0f;
+		//cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 
-				ImFontConfig cfg;
-				cfg.SizePixels = font.size;
-				//cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+		io.FontDefault = io.Fonts->AddFontFromMemoryCompressedTTF(opensans_semibold_compressed_data, opensans_semibold_compressed_size, 18.0f, &cfg);
 
-				font.handle = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(default_font.data(), default_font.size(), font.size, &cfg);
+		// add our icons to the default font
+		static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
 
-				static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
+		ImFontConfig icons_config;
+		icons_config.MergeMode = true;
+		icons_config.PixelSnapH = true;
 
-				ImFontConfig icons_config;
-				icons_config.MergeMode = true; 
-				icons_config.PixelSnapH = true;
-
-				ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);
-			}
-		}
-
-		fonts_.push_back(font);
+		io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);
 	}
 
 	void font::register_font(std::string name, std::string path, int size)
 	{
+		font_t font;
+		font.name = name;
+
 		if (!utils::io::file_exists(path))
 		{
-			uieditor::log::print(uieditor::log_message_type::log_error, "Failed to register font '%s' (file not found)", path.data());
+			uieditor::log::print(uieditor::log_error, "Failed to register font '%s' (file not found)", path.data());
 			return;
 		}
 
-		font_t font;
-		font.name = name;
+		font.path = path;
 		font.size = size;
 
 		ImFontConfig cfg;
@@ -112,6 +67,20 @@ namespace renderer
 
 		font.handle = ImGui::GetIO().Fonts->AddFontFromFileTTF(path.data(), size, &cfg);
 
-		fonts_.push_back(font);
+		fonts_.push_back(std::make_unique<font_t>(font));
+	}
+
+	font_t* font::get_font_handle(std::string name)
+	{
+		for (auto i = 0; i < fonts_.size(); i++)
+		{
+			auto font = fonts_.at(i).get();
+			if (font->name == name)
+			{
+				return font;
+			}
+		}
+
+		return nullptr;
 	}
 }

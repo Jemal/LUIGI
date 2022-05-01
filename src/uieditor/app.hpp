@@ -17,6 +17,7 @@ namespace uieditor
 		FILE_DIALOG_OPEN,
 		FILE_DIALOG_IMAGE,
 		FILE_DIALOG_BACKGROUND_IMAGE,
+		FILE_DIALOG_FONT,
 	};
 
 	class app
@@ -28,6 +29,7 @@ namespace uieditor
 		static LRESULT WINAPI wnd_proc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		
 		static bool check_quit();
+		static void set_shutdown();
 
 		static void frame();
 
@@ -42,8 +44,6 @@ namespace uieditor
 		static FileDialogMode file_dialog_mode_;
 
 		static ImGuiFileBrowser file_browser_;
-
-		static bool added_font_;
 
 	private:
 		static AppState state_;
