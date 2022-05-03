@@ -2,12 +2,25 @@
 
 namespace uieditor
 {
+	struct color_t
+	{
+		std::string name;
+		float r;
+		float g;
+		float b;
+	};
+
 	class settings
 	{
 	public:
 		static void draw();
 
 		static bool show_settings_;
+
+		static std::vector<color_t> colors_;
+
+		static void save_color_settings();
+		static void load_color_settings();
 
 		static void save_font_settings();
 		static void load_font_settings();

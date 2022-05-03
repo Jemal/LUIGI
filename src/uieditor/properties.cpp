@@ -13,6 +13,8 @@ namespace uieditor
 
 	float properties::input_fast_step_ = 10.0f;
 
+	bool properties::show_color_sets_ = true;
+
 	void properties::begin_property(const char* label)
 	{
 		ImGui::TableNextColumn();
@@ -63,7 +65,7 @@ namespace uieditor
 	{
 		begin_property(label);
 
-		return ImGui::ColorEdit3(utils::string::va("##%s", label), color);
+		return ImGui::ColorEdit3(utils::string::va("##%s", label), color, ImGuiColorEditFlags_NoInputs);
 	}
 
 	bool properties::text_property(const char* label, char* buf, size_t buf_size)
@@ -201,6 +203,13 @@ namespace uieditor
 			lui::element::invalidate_layout(element_);
 		}
 
+		ImGui::SameLine();
+
+		if (ImGui::Button("Saved##ColorSets"))
+		{
+			show_color_sets_ = true;
+		}
+
 		if (slider_property("Alpha:", ImGuiDataType_::ImGuiDataType_Float, &element_->currentAnimationState.alpha, 0.0f, 1.0f))
 		{
 			lui::element::invalidate_layout(element_);
@@ -269,6 +278,43 @@ namespace uieditor
 					ImGui::TreePop();
 				}
 			}
+		}
+
+		if (show_color_sets_)
+		{
+			ImGui::OpenPopup("Color Sets");
+			show_color_sets_ = false;
+		}
+
+		if (ImGui::BeginPopup("Color Sets"))
+		{
+			float sz = ImGui::GetTextLineHeight();
+			for (int i = 0; i < settings::colors_.size(); i++)
+			{
+				if (ImGui::BeginMenu("Colors"))
+				{
+					auto color = &settings::colors_.at(i);
+
+					const char* name = color->name.data();
+					ImVec2 p = ImGui::GetCursorScreenPos();
+
+					ImVec4 value(color->r, color->g, color->b, 1.0f);
+
+					ImGui::GetWindowDrawList()->AddRectFilled(p, ImVec2(p.x + sz, p.y + sz), ImGui::GetColorU32(value));
+					ImGui::Dummy(ImVec2(sz, sz));
+					ImGui::SameLine();
+					ImGui::MenuItem(name);
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Swatches"))
+				{
+					ImGui::EndMenu();
+				}
+			}
+
+			ImGui::EndPopup();
 		}
 
 		ImGui::End();

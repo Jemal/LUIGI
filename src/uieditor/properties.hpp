@@ -11,6 +11,7 @@ namespace uieditor
 
 	private:
 		static float input_fast_step_;
+		static bool show_color_sets_;
 
 		static void begin_property(const char* label);
 		

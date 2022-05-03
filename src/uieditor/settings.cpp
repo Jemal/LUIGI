@@ -11,14 +11,78 @@ namespace uieditor
 
 	std::string settings::new_font_name_ = ""s;
 
+	std::vector<color_t> settings::colors_;
 	std::vector<std::unique_ptr<renderer::font_t>> settings::saved_fonts_;
+
+	void settings::save_color_settings()
+	{
+		auto path = "uieditor\\config\\colors.json";
+		if (!utils::io::file_exists(path))
+		{
+			log::print(log_error, "Failed to save color settings for project");
+			return;
+		}
+
+		nlohmann::ordered_json color_settings;
+
+		auto i = 0;
+
+		for (auto& color : colors_)
+		{
+			color_settings[i]["Name"] = color.name;
+			color_settings[i]["r"] = color.r;
+			color_settings[i]["g"] = color.g;
+			color_settings[i]["b"] = color.b;
+
+			i++;
+		}
+
+		utils::io::write_file(path, color_settings.dump(4));
+	}
+
+	void settings::load_color_settings()
+	{
+		auto path = "uieditor\\config\\colors.json";
+		if (!utils::io::file_exists(path))
+		{
+			log::print(log_error, "Failed to load colors settings for project");
+			return;
+		}
+
+		auto color_settings = utils::io::read_file(path);
+		if (!color_settings.empty())
+		{
+			auto data = nlohmann::ordered_json::parse(color_settings);
+
+			for (auto& item : data.items())
+			{
+				auto values = item.value();
+
+				auto color_name = values["Name"];
+				auto color_r = values["r"];
+				auto color_g = values["g"];
+				auto color_b = values["b"];
+
+				// add it to the saved fonts so we can view it in settings
+				{
+					color_t new_color;
+					new_color.name = color_name;
+					new_color.r = color_r;
+					new_color.g = color_g;
+					new_color.b = color_b;
+
+					colors_.push_back(new_color);
+				}
+			}
+		}
+	}
 
 	void settings::save_font_settings()
 	{
 		auto path = "uieditor\\config\\fonts.json";
 		if (!utils::io::file_exists(path))
 		{
-			log::print(log_error, "Failed to load font settings for project");
+			log::print(log_error, "Failed to save font settings for project");
 			return;
 		}
 
@@ -94,6 +158,36 @@ namespace uieditor
 	{
 		if (ImGui::BeginTabItem("Colors"))
 		{
+			if (ImGui::BeginTable("Color Settings", 2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoSavedSettings))
+			{
+				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 125);
+				ImGui::TableSetupColumn("Value");
+				ImGui::TableHeadersRow();
+
+				for (auto i = 0; i < colors_.size(); i++)
+				{
+					auto color = &colors_.at(i);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					ImGui::Text(color->name.data());
+
+					ImGui::TableNextColumn();
+
+					char buf[64];
+					sprintf(buf, "##%s", color->name.data());
+
+					ImGui::PushItemWidth(-1);
+
+					ImGui::ColorEdit3(buf, &color->r);
+
+					ImGui::PopItemWidth();
+				}
+
+				ImGui::EndTable();
+			}
+
 			ImGui::EndTabItem();
 		}
 	}

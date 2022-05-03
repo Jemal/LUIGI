@@ -40,6 +40,8 @@ namespace uieditor
 
 		lui::core::init();
 
+		settings::load_color_settings();
+
 		project::set_project_name("Untitled", false);
 
 		renderer::engine::frame();
