@@ -440,6 +440,7 @@ namespace uieditor
 						properties::element_->currentAnimationState.leftPx += delta.x > 0.0f ? step : -step;
 						properties::element_->currentAnimationState.rightPx += delta.x > 0.0f ? step : -step;
 
+						// this forces us to move our mouse again if we wanna move another grid cell
 						ImGui::GetIO().MouseDragMaxDistanceSqr[0] = 0.0f;
 						ImGui::ResetMouseDragDelta();
 					}
@@ -449,6 +450,7 @@ namespace uieditor
 						properties::element_->currentAnimationState.topPx += delta.y > 0.0f ? step : -step;
 						properties::element_->currentAnimationState.bottomPx += delta.y > 0.0f ? step : -step;
 
+						// this forces us to move our mouse again if we wanna move another grid cell
 						ImGui::GetIO().MouseDragMaxDistanceSqr[0] = 0.0f;
 						ImGui::ResetMouseDragDelta();
 					}

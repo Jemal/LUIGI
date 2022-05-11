@@ -17,8 +17,8 @@ namespace uieditor
 {
 	bool app::show_background_ = false;
 
-	bool app::show_grid_ = false;
-	bool app::snap_to_grid_ = false;
+	bool app::show_grid_ = true;
+	bool app::snap_to_grid_ = true;
 	float app::grid_step_ = 32.0f;
 
 	bool app::show_imgui_demo_ = false;
