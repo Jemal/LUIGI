@@ -8,6 +8,12 @@ enum UIElementType
 	UI_TYPE_COUNT = 3
 };
 
+struct UIAnchorPair
+{
+	const char* name;
+	int value;
+};
+
 enum UIAnchorType
 {
 	ANCHOR_NONE = 0,

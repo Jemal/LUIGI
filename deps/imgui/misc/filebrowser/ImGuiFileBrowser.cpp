@@ -112,7 +112,11 @@ void ImGuiFileBrowser::closeDialog()
 void ImGuiFileBrowser::open_dialog(std::string label, std::string dir)
 {
 	ImGui::OpenPopup(label.data());
+
 	this->current_path = dir;
+	this->selected_path = "";
+
+	this->current_dirlist.clear();
 
 	active = true;
 }

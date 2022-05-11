@@ -1,10 +1,12 @@
 #include <stdafx.hpp>
 #include "element.hpp"
+#include "uieditor/app.hpp"
 #include "uieditor/canvas.hpp"
 #include "uieditor/project.hpp"
 #include "uieditor/properties.hpp"
 #include "uieditor/settings.hpp"
 #include "uieditor/tree.hpp"
+#include "uieditor/widgets.hpp"
 
 namespace lui
 {
@@ -110,13 +112,18 @@ namespace lui
 		// place the element based on where we clicked in the canvas
 		if (from_canvas)
 		{
+			// TODO: fix placment when zoom_pct_ != 1
+
 			child->currentAnimationState.topAnchor = true;
 			child->currentAnimationState.leftAnchor = true;
 			child->currentAnimationState.rightAnchor = false;
 			child->currentAnimationState.bottomAnchor = false;
+			
+			auto mouse_pos = uieditor::canvas::mouse_pos_;
+			//mouse_pos /= uieditor::canvas::zoom_pct_;
 
-			auto left = uieditor::canvas::mouse_pos_.x - (element->left * uieditor::canvas::zoom_pct_);
-			auto top = uieditor::canvas::mouse_pos_.y - (element->top * uieditor::canvas::zoom_pct_);
+			auto left = uieditor::canvas::mouse_pos_.x - (element->left/* * uieditor::canvas::zoom_pct_*/);
+			auto top = uieditor::canvas::mouse_pos_.y - (element->top/* * uieditor::canvas::zoom_pct_*/);
 
 			//::log::print(0, "%g %g [%g, %g]", left, top, uieditor::canvas::mouse_pos.x, uieditor::canvas::mouse_pos.y);
 
@@ -695,6 +702,22 @@ namespace lui
 					new_element->text = "New"s;
 				}
 
+				if (!uieditor::widgets::widgets_.empty())
+				{
+					if (ImGui::BeginMenu("Widgets"))
+					{
+						for (auto& widget : uieditor::widgets::widgets_)
+						{
+							if (ImGui::MenuItem(widget.data()))
+							{
+								uieditor::widgets::load_widget(widget.data());
+							}
+						}
+
+						ImGui::EndMenu();
+					}
+				}
+
 				ImGui::EndMenu();
 			}
 
@@ -715,6 +738,8 @@ namespace lui
 						uieditor::properties::element_ = lui::core::element_pool_.at(0);
 					}
 				}
+
+				ImGui::Separator();
 
 				if (ImGui::Selectable("Fit to parent"))
 				{
@@ -741,6 +766,16 @@ namespace lui
 				ImGui::InputText("##id", &element->name);
 
 				ImGui::EndMenu();
+			}
+
+			if (element->firstChild)
+			{
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Save As Widget"))
+				{
+					uieditor::app::file_dialog_mode_ = uieditor::FILE_DIALOG_WIDGET;
+				}
 			}
 
 			ImGui::EndPopup();

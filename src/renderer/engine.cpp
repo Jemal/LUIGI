@@ -105,6 +105,8 @@ namespace renderer
 		io->IniFilename = "uieditor\\config\\panels.ini";
 		io->ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 
+		ImGui::StyleColorsDark();
+
 		ImGui::StyleUIE();
 
 		font::register_default_font();

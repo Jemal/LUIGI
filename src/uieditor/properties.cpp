@@ -15,6 +15,26 @@ namespace uieditor
 
 	bool properties::show_color_sets_ = true;
 
+	UIAnchorPair anchor_pair[ANCHOR_COUNT] =
+	{
+		{ "None", ANCHOR_NONE },
+		{ "Left", ANCHOR_LEFT },
+		{ "Top", ANCHOR_TOP },
+		{ "Right", ANCHOR_RIGHT },
+		{ "Bottom", ANCHOR_BOTTOM },
+		{ "All", ANCHOR_ALL },
+		{ "Left-Right", ANCHOR_LEFT_RIGHT },
+		{ "Top-Bottom", ANCHOR_TOP_BOTTOM },
+		{ "Top-Left", ANCHOR_TOP_LEFT },
+		{ "Bottom-Left", ANCHOR_BOTTOM_LEFT },
+		{ "Top-Right", ANCHOR_TOP_RIGHT },
+		{ "Bottom-Right", ANCHOR_BOTTOM_RIGHT },
+		{ "Top-Left-Right", ANCHOR_TOP_LEFT_RIGHT },
+		{ "Bottom-Left-Right", ANCHOR_BOTTOM_LEFT_RIGHT },
+		{ "Top-Bottom-Left", ANCHOR_TOP_BOTTOM_LEFT },
+		{ "Top-Bottom-Right", ANCHOR_TOP_BOTTOM_RIGHT },
+	};
+
 	void properties::begin_property(const char* label)
 	{
 		ImGui::TableNextColumn();
@@ -157,19 +177,21 @@ namespace uieditor
 			lui::element::invalidate_layout(element_);
 		}
 	}
-	
+
 	void properties::draw_element_properties()
 	{
 		if (combo_property("Anchors:", lui::element::anchors_to_string(lui::element::anchors_to_int(element_))))
 		{
 			for (auto i = 0; i < UIAnchorType::ANCHOR_COUNT; i++)
 			{
-				if (ImGui::Selectable(lui::element::anchors_to_string(i)))
+				auto anchor = anchor_pair[i];
+
+				if (ImGui::Selectable(anchor.name))
 				{
-					element_->currentAnimationState.leftAnchor = (i & UIAnchorType::ANCHOR_LEFT) != 0;
-					element_->currentAnimationState.topAnchor = (i & UIAnchorType::ANCHOR_TOP) != 0;
-					element_->currentAnimationState.rightAnchor = (i & UIAnchorType::ANCHOR_RIGHT) != 0;
-					element_->currentAnimationState.bottomAnchor = (i & UIAnchorType::ANCHOR_BOTTOM) != 0;
+					element_->currentAnimationState.leftAnchor = (anchor.value & UIAnchorType::ANCHOR_LEFT) != 0;
+					element_->currentAnimationState.topAnchor = (anchor.value & UIAnchorType::ANCHOR_TOP) != 0;
+					element_->currentAnimationState.rightAnchor = (anchor.value & UIAnchorType::ANCHOR_RIGHT) != 0;
+					element_->currentAnimationState.bottomAnchor = (anchor.value & UIAnchorType::ANCHOR_BOTTOM) != 0;
 
 					lui::element::invalidate_layout(element_);
 				}

@@ -336,8 +336,14 @@ namespace uieditor
 		auto scaled_right = element->right * zoom_pct_;
 		auto scaled_bottom = element->bottom * zoom_pct_;
 
-		auto in_bounds_x = mouse_pos.x >= scaled_left && mouse_pos.x <= scaled_right;
-		auto in_bounds_y = mouse_pos.y >= scaled_top && mouse_pos.y <= scaled_bottom;
+		auto element_width = scaled_right - scaled_left;
+		auto element_height = scaled_bottom - scaled_top;
+
+		auto in_bounds_x = element_width >= 0.0f ? mouse_pos.x >= scaled_left && mouse_pos.x <= scaled_right : mouse_pos.x >= scaled_right && mouse_pos.x <= scaled_left;
+		auto in_bounds_y = element_height >= 0.0f ? mouse_pos.y >= scaled_top && mouse_pos.y <= scaled_bottom : mouse_pos.y >= scaled_bottom && mouse_pos.y <= scaled_top;
+
+		//auto in_bounds_x = mouse_pos.x >= scaled_left && mouse_pos.x <= scaled_right;
+		//auto in_bounds_y = mouse_pos.y >= scaled_top && mouse_pos.y <= scaled_bottom;
 
 		auto in_child_bounds = false;
 
@@ -477,7 +483,13 @@ namespace uieditor
 
 			auto is_hovered = in_focus_ = ImGui::IsItemHovered();
 			auto is_active = ImGui::IsItemActive();
-			mouse_pos_ = ImVec2(io->MousePos.x - region_.x, io->MousePos.y - region_.y);
+			auto is_focused = ImGui::IsItemFocused();
+
+			// don't update mouse pos if canvas is not focused or element context menu is active
+			if (is_focused)
+			{
+				mouse_pos_ = ImVec2(io->MousePos.x - region_.x, io->MousePos.y - region_.y);
+			}
 
 			draw_list_ = ImGui::GetWindowDrawList();
 
@@ -502,16 +514,19 @@ namespace uieditor
 
 				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
-					if (hover_mode_ == UIAnchorType::ANCHOR_NONE)
-					{
-						clicked_in_element_ = clicked_in_element_bounds(root, mouse_pos_, false);
-					}
-
-					if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+					/*if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 					{
 						if (properties::element_->parent != nullptr)
 						{
 							properties::element_ = properties::element_->parent;
+						}
+					}*/
+
+					//if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+					{
+						if (hover_mode_ == UIAnchorType::ANCHOR_NONE)
+						{
+							clicked_in_element_ = clicked_in_element_bounds(root, mouse_pos_, false);
 						}
 					}
 
@@ -533,7 +548,7 @@ namespace uieditor
 
 			if (is_active)
 			{
-				if (/*clicked_in_element_ &&*/ hovered_element_)
+				if (/*clicked_in_element_ &&*/ hovering_element_)
 				{
 					// dont want to move/resize root
 					if (properties::element_ != root)
@@ -544,7 +559,7 @@ namespace uieditor
 			}
 
 			// Draw border and background color
-			draw_list_->AddRectFilled(ImVec2(region_.x, region_.y), ImVec2(region_.z, region_.w), IM_COL32(40, 40, 40, 255));
+			draw_list_->AddRectFilled(ImVec2(region_.x, region_.y), ImVec2(region_.z, region_.w), IM_COL32(0, 0, 0, 255));
 			//draw_list_->AddRect(ImVec2(region_.x - 1, region_.y - 1), ImVec2(region_.z + 1, region_.w + 1), IM_COL32(255, 255, 255, 100));
 
 			// keep everything drawn inside the canvas

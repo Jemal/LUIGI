@@ -18,6 +18,7 @@ namespace uieditor
 		FILE_DIALOG_IMAGE,
 		FILE_DIALOG_BACKGROUND_IMAGE,
 		FILE_DIALOG_FONT,
+		FILE_DIALOG_WIDGET,
 	};
 
 	class app

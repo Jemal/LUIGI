@@ -81,6 +81,7 @@
 #include "utils/io.hpp"
 #include "utils/memory.hpp"
 #include "utils/string.hpp"
+#include "utils/json.hpp"
 
 #include "renderer/engine.hpp"
 #include "renderer/font.hpp"

@@ -6,6 +6,7 @@
 #include "properties.hpp"
 #include "settings.hpp"
 #include "tree.hpp"
+#include "widgets.hpp"
 #include "rc/resource.hpp"
 #include "renderer/engine.hpp"
 #include "renderer/image.hpp"
@@ -41,6 +42,8 @@ namespace uieditor
 		lui::core::init();
 
 		settings::load_color_settings();
+
+		widgets::populate_widgets_list();
 
 		project::set_project_name("Untitled", false);
 
@@ -322,6 +325,10 @@ namespace uieditor
 			file_browser_.open_dialog("Select Font", "./uieditor/assets/fonts/");
 			file_dialog_mode_ = FILE_DIALOG_NONE;
 			break;
+		case FILE_DIALOG_WIDGET:
+			file_browser_.open_dialog("Save Widget", "./uieditor/widgets/");
+			file_dialog_mode_ = FILE_DIALOG_NONE;
+			break;
 		}
 
 		if (file_browser_.show_dialog("Save Project", ImGuiFileBrowser::DialogMode::SAVE, ImVec2(0, 0), ".uip"))
@@ -384,6 +391,26 @@ namespace uieditor
 			}
 
 			settings::add_new_saved_font_entry(filepath);
+		}
+
+		if (file_browser_.show_dialog("Save Widget", ImGuiFileBrowser::DialogMode::SAVE, ImVec2(0, 0), ".uiw"))
+		{
+			auto filepath = file_browser_.selected_path;
+
+			auto current_path = std::filesystem::current_path().string();
+			std::replace(current_path.begin(), current_path.end(), '\\', '/');
+
+			if (filepath.contains(current_path))
+			{
+				filepath.erase(0, current_path.length());
+				filepath.insert(0, ".");
+			}
+
+			widgets::new_widget_name_ = file_browser_.selected_fn;
+
+			widgets::widget_element_ = properties::element_;
+
+			widgets::save_widget(properties::element_, filepath);
 		}
 	}
 

@@ -18,29 +18,30 @@ namespace uieditor
 			select_element(element);
 		}
 
-		ImGui::TableNextColumn();
+		/*ImGui::TableNextColumn();
 
-		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), lui::element::type_to_string(element->type).data());
+		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), lui::element::type_to_string(element->type).data());*/
 	}
 
 	void tree::display_element(UIElement* element)
 	{
-		ImGui::TableNextRow();
-		ImGui::TableNextColumn();
-
-		ImGui::Spacing();
-
 		if (element->firstChild != nullptr)
 		{
 			auto node_flags = ImGuiTreeNodeFlags_None | ImGuiTreeNodeFlags_SpanFullWidth;
 			if (element == properties::element_)
 			{
 				node_flags |= ImGuiTreeNodeFlags_Selected;
+				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 			}
 
 			if (element == properties::element_->parent)
 			{
-				ImGui::SetNextItemOpen(true);
+				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+			}
+
+			if (lui::element::is_descendent_of(element, properties::element_))
+			{
+				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 			}
 
 			char buf[64];
@@ -55,6 +56,11 @@ namespace uieditor
 				auto child = element->firstChild;
 				while (child)
 				{
+					if (child == properties::element_)
+					{
+						ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+					}
+
 					if (!element)
 					{
 						break;
@@ -75,7 +81,7 @@ namespace uieditor
 			if (element == properties::element_)
 			{
 				node_flags |= ImGuiTreeNodeFlags_Selected;
-				ImGui::SetNextItemOpen(true);
+				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 			}
 
 			char buf[64];
@@ -91,19 +97,7 @@ namespace uieditor
 	{
 		if (ImGui::Begin("Tree"))
 		{
-			if (ImGui::BeginTable("3ways", 2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoSavedSettings))
-			{
-				char buf[64];
-				sprintf(buf, "Elements (%i/%i)", lui::core::allocated_elements_, LUI_MAX_ELEMENTS);
-
-				ImGui::TableSetupColumn(buf, ImGuiTableColumnFlags_NoHide);
-				ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 125);
-				ImGui::TableHeadersRow();
-
-				display_element(lui::core::get_root_element());
-
-				ImGui::EndTable();
-			}
+			display_element(lui::core::get_root_element());
 		}
 
 		ImGui::End();
