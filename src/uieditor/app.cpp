@@ -18,7 +18,8 @@ namespace uieditor
 	bool app::show_background_ = false;
 
 	bool app::show_grid_ = false;
-	float app::grid_step_ = 24.0f;
+	bool app::snap_to_grid_ = false;
+	float app::grid_step_ = 32.0f;
 
 	bool app::show_imgui_demo_ = false;
 
@@ -281,6 +282,8 @@ namespace uieditor
 					grid_step_ += 2.0f;
 				}
 
+				ImGui::MenuItem("Snap", "ALT+S", &app::snap_to_grid_);
+
 				ImGui::EndMenu();
 			}
 
@@ -424,6 +427,10 @@ namespace uieditor
 				{
 					show_grid_ = !show_grid_;
 				}
+				else if (ImGui::IsKeyPressed(ImGuiKey_S, false))
+				{
+					snap_to_grid_ = !snap_to_grid_;
+				}
 			}
 			else if (ImGui::IsKeyDown(ImGuiKey_ModCtrl))
 			{
@@ -451,13 +458,22 @@ namespace uieditor
 					show_background_ = !show_background_;
 				}
 			}
-			else if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket, false))
+
+			if (show_grid_)
 			{
-				grid_step_ -= 2.0f;
-			}
-			else if (ImGui::IsKeyPressed(ImGuiKey_RightBracket, false))
-			{
-				grid_step_ += 2.0f;
+				if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket, false))
+				{
+					if (grid_step_ <= 0.0f)
+					{
+						return;
+					}
+
+					grid_step_ -= 2.0f;
+				}
+				else if (ImGui::IsKeyPressed(ImGuiKey_RightBracket, false))
+				{
+					grid_step_ += 2.0f;
+				}
 			}
 		}
 	}

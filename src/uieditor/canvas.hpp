@@ -23,6 +23,8 @@ namespace uieditor
 		static void draw_text(UIElement* element, float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float wrap_width, int alignment);
 	
 	private:
+		static float grid_cell_size_;
+
 		static ImDrawList* draw_list_;
 
 		static void draw_grid();

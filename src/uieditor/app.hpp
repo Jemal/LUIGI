@@ -40,6 +40,7 @@ namespace uieditor
 		static bool show_background_;
 
 		static bool show_grid_;
+		static bool snap_to_grid_;
 		static float grid_step_;
 
 		static FileDialogMode file_dialog_mode_;

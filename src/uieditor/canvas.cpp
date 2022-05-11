@@ -13,6 +13,8 @@ namespace uieditor
 	float canvas::zoom_pct_ = 1.0f;
 	renderer::image_t* canvas::background_image_ = nullptr;
 
+	float canvas::grid_cell_size_ = 0.0f;
+
 	ImDrawList* canvas::draw_list_ = nullptr;
 
 	bool canvas::clicked_in_element_ = false;
@@ -109,7 +111,8 @@ namespace uieditor
 	void canvas::draw_grid()
 	{
 		auto color = IM_COL32(200, 200, 200, 75);
-		auto step = (size_.x * zoom_pct_) / app::grid_step_;
+		auto step = grid_cell_size_ = (size_.x * zoom_pct_) / app::grid_step_;
+		//auto step = grid_dist_ = app::grid_step_ * zoom_pct_;
 
 		for (auto x = fmodf(0.0f, step); x < (size_.x * zoom_pct_); x += step)
 		{
@@ -376,7 +379,9 @@ namespace uieditor
 
 		hover_mode_ = click_mode_;
 
-		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left, 10.0f))
+		auto snap_to_grid = app::show_grid_ && app::snap_to_grid_;
+
+		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left, snap_to_grid ? grid_cell_size_ : 10.0f))
 		{
 			auto delta = io->MouseDelta;
 			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
@@ -426,10 +431,35 @@ namespace uieditor
 			}
 			else
 			{
-				properties::element_->currentAnimationState.leftPx += delta.x;
-				properties::element_->currentAnimationState.rightPx += delta.x;
-				properties::element_->currentAnimationState.topPx += delta.y;
-				properties::element_->currentAnimationState.bottomPx += delta.y;
+				if (snap_to_grid)
+				{
+					auto step = grid_cell_size_;
+
+					if (delta.x != 0.0f)
+					{
+						properties::element_->currentAnimationState.leftPx += delta.x > 0.0f ? step : -step;
+						properties::element_->currentAnimationState.rightPx += delta.x > 0.0f ? step : -step;
+
+						ImGui::GetIO().MouseDragMaxDistanceSqr[0] = 0.0f;
+						ImGui::ResetMouseDragDelta();
+					}
+
+					if (delta.y != 0.0f)
+					{
+						properties::element_->currentAnimationState.topPx += delta.y > 0.0f ? step : -step;
+						properties::element_->currentAnimationState.bottomPx += delta.y > 0.0f ? step : -step;
+
+						ImGui::GetIO().MouseDragMaxDistanceSqr[0] = 0.0f;
+						ImGui::ResetMouseDragDelta();
+					}
+				}
+				else
+				{
+					properties::element_->currentAnimationState.leftPx += delta.x;
+					properties::element_->currentAnimationState.rightPx += delta.x;
+					properties::element_->currentAnimationState.topPx += delta.y;
+					properties::element_->currentAnimationState.bottomPx += delta.y;
+				}
 			}
 
 			lui::element::invalidate_layout(properties::element_);
