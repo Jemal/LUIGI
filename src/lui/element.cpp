@@ -316,31 +316,31 @@ namespace lui
 		case UIAnchorType::ANCHOR_TOP:
 			return "Top";
 		case UIAnchorType::ANCHOR_TOP_LEFT:
-			return "TopLeft";
+			return "Top-Left";
 		case UIAnchorType::ANCHOR_TOP_RIGHT:
-			return "TopRight";
+			return "Top-Right";
 		case UIAnchorType::ANCHOR_TOP_LEFT_RIGHT:
-			return "TopLeftRight";
+			return "Top-Left-Right";
 		case UIAnchorType::ANCHOR_BOTTOM:
 			return "Bottom";
 		case UIAnchorType::ANCHOR_BOTTOM_LEFT:
-			return "BottomLeft";
+			return "Bottom-Left";
 		case UIAnchorType::ANCHOR_BOTTOM_RIGHT:
-			return "BottomRight";
+			return "Bottom-Right";
 		case UIAnchorType::ANCHOR_BOTTOM_LEFT_RIGHT:
-			return "BottomLeftRight";
+			return "Bottom-Left-Right";
 		case UIAnchorType::ANCHOR_TOP_BOTTOM:
-			return "TopBottom";
+			return "Top-Bottom";
 		case UIAnchorType::ANCHOR_TOP_BOTTOM_LEFT:
-			return "TopBottomLeft";
+			return "Top-Bottom-Left";
 		case UIAnchorType::ANCHOR_TOP_BOTTOM_RIGHT:
-			return "TopBottomRight";
+			return "Top-Bottom-Right";
 		case UIAnchorType::ANCHOR_LEFT:
 			return "Left";
 		case UIAnchorType::ANCHOR_RIGHT:
 			return "Right";
 		case UIAnchorType::ANCHOR_LEFT_RIGHT:
-			return "LeftRight";
+			return "Left-Right";
 		}
 
 		return "Unknown Anchor";
@@ -704,6 +704,8 @@ namespace lui
 
 				if (!uieditor::widgets::widgets_.empty())
 				{
+					ImGui::Separator();
+
 					if (ImGui::BeginMenu("Widgets"))
 					{
 						for (auto& widget : uieditor::widgets::widgets_)
@@ -772,13 +774,188 @@ namespace lui
 			{
 				ImGui::Separator();
 
-				if (ImGui::MenuItem("Save As Widget"))
+				if (ImGui::MenuItem("Save as Widget"))
 				{
-					uieditor::app::file_dialog_mode_ = uieditor::FILE_DIALOG_WIDGET;
+					uieditor::app::file_dialog_mode_ = uieditor::FILE_DIALOG_SAVE_AS_WIDGET;
 				}
 			}
 
 			ImGui::EndPopup();
+		}
+	}
+
+	void element::serialize(UIElement* element, nlohmann::ordered_json* json, bool is_widget)
+	{
+		// ignore elements that were saved already when we're saving as a project
+		if (!is_widget)
+		{
+			if (std::find(uieditor::project::saved_elements_.begin(), uieditor::project::saved_elements_.end(), element->id) != uieditor::project::saved_elements_.end())
+			{
+				return;
+			}
+		
+			uieditor::project::saved_elements_.push_back(element->id);
+		}
+
+		(*json)["Type"] = lui::element::type_to_string(element->type);
+		(*json)["Priority"] = element->priority;
+
+		if (is_widget)
+		{
+			if (element != uieditor::widgets::widget_element_)
+			{
+				(*json)["Anchors"][0] = element->currentAnimationState.leftAnchor;
+				(*json)["Anchors"][1] = element->currentAnimationState.topAnchor;
+				(*json)["Anchors"][2] = element->currentAnimationState.rightAnchor;
+				(*json)["Anchors"][3] = element->currentAnimationState.bottomAnchor;
+
+				(*json)["Position"][0] = element->currentAnimationState.leftPx;
+				(*json)["Position"][1] = element->currentAnimationState.topPx;
+				(*json)["Position"][2] = element->currentAnimationState.rightPx;
+				(*json)["Position"][3] = element->currentAnimationState.bottomPx;
+			}
+		}
+		else
+		{
+			(*json)["Anchors"][0] = element->currentAnimationState.leftAnchor;
+			(*json)["Anchors"][1] = element->currentAnimationState.topAnchor;
+			(*json)["Anchors"][2] = element->currentAnimationState.rightAnchor;
+			(*json)["Anchors"][3] = element->currentAnimationState.bottomAnchor;
+
+			(*json)["Position"][0] = element->currentAnimationState.leftPx;
+			(*json)["Position"][1] = element->currentAnimationState.topPx;
+			(*json)["Position"][2] = element->currentAnimationState.rightPx;
+			(*json)["Position"][3] = element->currentAnimationState.bottomPx;
+		}
+
+		(*json)["Color"]["r"] = element->currentAnimationState.red;
+		(*json)["Color"]["g"] = element->currentAnimationState.green;
+		(*json)["Color"]["b"] = element->currentAnimationState.blue;
+
+		(*json)["Alpha"] = element->currentAnimationState.alpha;
+
+		(*json)["Rotation"] = element->currentAnimationState.rotation;
+		(*json)["Stencil"] = (element->currentAnimationState.flags & AS_STENCIL) != 0;
+
+		if (element->type == UI_IMAGE)
+		{
+			if (element->currentAnimationState.image != NULL)
+			{
+				(*json)["Image"]["Name"] = element->currentAnimationState.image->name;
+				(*json)["Image"]["Path"] = element->currentAnimationState.image->path;
+			}
+			else
+			{
+				(*json)["Image"] = nullptr;
+				(*json)["Path"] = nullptr;
+			}
+		}
+		else if (element->type == UI_TEXT && element->currentAnimationState.font != NULL)
+		{
+			(*json)["Alignment"] = element->currentAnimationState.alignment;
+			(*json)["Font"] = element->currentAnimationState.font->name;
+			(*json)["Text"] = element->text.data();
+		}
+
+		// children
+		for (auto i = 0; i < element->child_count; i++)
+		{
+			auto child = element->firstChild;
+			while (child)
+			{
+				auto children_data = &(*json)["Children"][child->name];
+
+				element::serialize(child, children_data, is_widget);
+
+				child = child->nextSibling;
+			}
+		}
+	}
+
+	void element::deserialize(UIElement* element, std::string name, nlohmann::ordered_json* json, bool is_widget)
+	{
+		lui::element::create_element();
+
+		auto new_element = lui::core::element_pool_.back();
+
+		if (element == nullptr)
+		{
+			element = new_element;
+		}
+		else
+		{
+			lui::element::add_element(element, new_element);
+		}
+
+		new_element->name = name;
+
+		new_element->type = lui::element::string_to_type((*json)["Type"]);
+		new_element->priority = (*json)["Priority"];
+
+		new_element->currentAnimationState.leftAnchor = (*json)["Anchors"][0];
+		new_element->currentAnimationState.topAnchor = (*json)["Anchors"][1];
+		new_element->currentAnimationState.rightAnchor = (*json)["Anchors"][2];
+		new_element->currentAnimationState.bottomAnchor = (*json)["Anchors"][3];
+
+		new_element->currentAnimationState.leftPx = (*json)["Position"][0];
+		new_element->currentAnimationState.topPx = (*json)["Position"][1];
+		new_element->currentAnimationState.rightPx = (*json)["Position"][2];
+		new_element->currentAnimationState.bottomPx = (*json)["Position"][3];
+
+		new_element->currentAnimationState.red = (*json)["Color"]["r"];
+		new_element->currentAnimationState.green = (*json)["Color"]["g"];
+		new_element->currentAnimationState.blue = (*json)["Color"]["b"];
+
+		new_element->currentAnimationState.alpha = (*json)["Alpha"];
+		new_element->currentAnimationState.rotation = (*json)["Rotation"];
+
+		auto uses_stencil = (*json)["Stencil"];
+		if (uses_stencil)
+		{
+			new_element->currentAnimationState.flags |= AS_STENCIL;
+		}
+
+		if (new_element->type == UI_IMAGE)
+		{
+			auto image_name = (*json)["Image"]["Name"];
+			auto image_path = (*json)["Image"]["Path"];
+
+			if (!image_name.is_null())
+			{
+				auto image = renderer::image::register_handle(image_name, image_path);
+				if (image)
+				{
+					new_element->currentAnimationState.image = image;
+				}
+			}
+
+			new_element->renderFunction = lui::element::ui_image_render;
+		}
+		else if (new_element->type == UI_TEXT)
+		{
+			new_element->currentAnimationState.alignment = (*json)["Alignment"];
+
+			auto font_name = (*json)["Font"];
+			new_element->currentAnimationState.font = renderer::font::get_font_handle(font_name);
+
+			new_element->text = std::string((*json)["Text"]);
+
+			new_element->renderFunction = lui::element::ui_text_render;
+		}
+
+		lui::element::invalidate_layout(element);
+		//lui::element::invalidate_layout(new_element);
+
+		auto children_data = &(*json)["Children"];
+		if (!children_data->is_null())
+		{
+			for (auto& item : children_data->items())
+			{
+				auto element_name = item.key();
+				auto val = item.value();
+
+				deserialize(new_element, element_name, &val, is_widget);
+			}
 		}
 	}
 }

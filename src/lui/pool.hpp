@@ -83,6 +83,16 @@ namespace lui
 			return &this->m_pool[index];
 		}
 
+		T* front()
+		{
+			return &this->m_pool[0];
+		}
+
+		T* back()
+		{
+			return &this->m_pool[this->m_allocatedCount];
+		}
+
 		int size()
 		{
 			return this->m_allocatedCount;

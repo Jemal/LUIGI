@@ -15,6 +15,8 @@ namespace uieditor
 		static ProjectState state_;
 		static std::string project_name_;
 
+		static std::vector<std::string> saved_elements_;
+
 		static void new_project();
 		static void save_project(std::string name);
 		static void load_project(std::string name);

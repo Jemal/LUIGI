@@ -5,7 +5,8 @@ enum UIElementType
 	UI_ELEMENT = 0,
 	UI_IMAGE = 1,
 	UI_TEXT = 2,
-	UI_TYPE_COUNT = 3
+	UI_WIDGET = 3,
+	UI_TYPE_COUNT = 4
 };
 
 struct UIAnchorPair
@@ -135,6 +136,7 @@ struct UIElement
 	UIElement* lastChild;
 
 	int child_count;
+	bool is_from_widget;
 
 	void(*layoutFunction)(UIElement*, UIElement*, int, int);
 	void(*renderFunction)(UIElement*, UIElement*, float, float, float, float);
@@ -200,6 +202,9 @@ namespace lui
 		static void render(UIElement* element, UIElement* root, float red, float green, float blue, float alpha);
 
 		static void context_menu(UIElement* element, bool from_canvas);
+
+		static void serialize(UIElement* element, nlohmann::ordered_json* json, bool is_widget);
+		static void deserialize(UIElement* element, std::string name, nlohmann::ordered_json* json, bool is_widget);
 
 	private:
 

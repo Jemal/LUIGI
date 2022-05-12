@@ -12,77 +12,6 @@ namespace uieditor
 	namespace
 	{
 		// add these to lui/element.cpp
-		static std::vector<std::string> saved_elements_;
-
-		void save_element_data(UIElement* element, nlohmann::ordered_json* element_data)
-		{
-			if (std::find(saved_elements_.begin(), saved_elements_.end(), element->id) != saved_elements_.end())
-			{
-				return;
-			}
-
-			saved_elements_.push_back(element->id);
-
-			(*element_data)["Type"] = lui::element::type_to_string(element->type);
-			(*element_data)["Priority"] = element->priority;
-
-			if (element != widgets::widget_element_)
-			{
-				(*element_data)["Anchors"][0] = element->currentAnimationState.leftAnchor;
-				(*element_data)["Anchors"][1] = element->currentAnimationState.topAnchor;
-				(*element_data)["Anchors"][2] = element->currentAnimationState.rightAnchor;
-				(*element_data)["Anchors"][3] = element->currentAnimationState.bottomAnchor;
-
-				(*element_data)["Position"][0] = element->currentAnimationState.leftPx;
-				(*element_data)["Position"][1] = element->currentAnimationState.topPx;
-				(*element_data)["Position"][2] = element->currentAnimationState.rightPx;
-				(*element_data)["Position"][3] = element->currentAnimationState.bottomPx;
-			}
-
-			(*element_data)["Color"]["r"] = element->currentAnimationState.red;
-			(*element_data)["Color"]["g"] = element->currentAnimationState.green;
-			(*element_data)["Color"]["b"] = element->currentAnimationState.blue;
-
-			(*element_data)["Alpha"] = element->currentAnimationState.alpha;
-
-			(*element_data)["Rotation"] = element->currentAnimationState.rotation;
-			(*element_data)["Stencil"] = (element->currentAnimationState.flags & AS_STENCIL) != 0;
-
-			if (element->type == UI_IMAGE)
-			{
-				if (element->currentAnimationState.image != NULL)
-				{
-					(*element_data)["Image"]["Name"] = element->currentAnimationState.image->name;
-					(*element_data)["Image"]["Path"] = element->currentAnimationState.image->path;
-				}
-				else
-				{
-					(*element_data)["Image"] = nullptr;
-					(*element_data)["Path"] = nullptr;
-				}
-			}
-			else if (element->type == UI_TEXT && element->currentAnimationState.font != NULL)
-			{
-				(*element_data)["Alignment"] = element->currentAnimationState.alignment;
-				(*element_data)["Font"] = element->currentAnimationState.font->name;
-				(*element_data)["Text"] = element->text.data();
-			}
-
-			// children
-			for (auto i = 0; i < element->child_count; i++)
-			{
-				auto child = element->firstChild;
-				while (child)
-				{
-					auto children_data = &(*element_data)["Children"][child->name];
-
-					save_element_data(child, children_data);
-
-					child = child->nextSibling;
-				}
-			}
-		}
-	
 		void load_element_data(UIElement* element, std::string name, nlohmann::ordered_json* element_data, std::string widget_name)
 		{
 			if (widget_name.empty())
@@ -90,7 +19,7 @@ namespace uieditor
 				lui::element::create_element();
 			}
 
-			auto new_element = lui::core::element_pool_.at(lui::core::element_pool_.size());
+			auto new_element = lui::core::element_pool_.back();
 
 			if (!widget_name.empty())
 			{
@@ -102,6 +31,8 @@ namespace uieditor
 				{
 					element = properties::element_;
 				}
+
+				new_element->is_from_widget = true;
 
 				lui::element::add_element(element, new_element);
 
@@ -181,6 +112,8 @@ namespace uieditor
 
 	void widgets::populate_widgets_list()
 	{
+		widgets_.clear();
+
 		auto files = utils::io::list_files("./uieditor/widgets/");
 		for (auto& file : files)
 		{
@@ -205,7 +138,7 @@ namespace uieditor
 
 		auto widget = &widget_data["Widget"];
 
-		save_element_data(element, widget);
+		lui::element::serialize(element, widget, true);
 
 		utils::io::write_file(filepath, widget_data.dump(4));
 	}
@@ -238,6 +171,8 @@ namespace uieditor
 
 			// load elements
 			load_element_data(new_element, "", widget_data, name);
+
+			new_element->type = UIElementType::UI_WIDGET;
 		}
 	}
 }

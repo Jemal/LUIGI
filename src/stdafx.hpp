@@ -14,6 +14,7 @@
 #pragma warning(disable: 26498) // x is constexpr, mark variable 'x' constexpr if compile - time evaluation is desired
 #pragma warning(disable: 26812) // The enum type 'x' is unscoped.Prefer 'enum class' over 'enum'
 #pragma warning(disable: 26819) // Unannotated fallthrough
+#pragma warning(disable: 28020) // 
 
 #define WIN32_LEAN_AND_MEAN
 

@@ -18,7 +18,7 @@ namespace uieditor
 	bool app::show_background_ = false;
 
 	bool app::show_grid_ = true;
-	bool app::snap_to_grid_ = true;
+	bool app::snap_to_grid_ = false;
 	float app::grid_step_ = 32.0f;
 
 	bool app::show_imgui_demo_ = false;
@@ -328,8 +328,8 @@ namespace uieditor
 			file_browser_.open_dialog("Select Font", "./uieditor/assets/fonts/");
 			file_dialog_mode_ = FILE_DIALOG_NONE;
 			break;
-		case FILE_DIALOG_WIDGET:
-			file_browser_.open_dialog("Save Widget", "./uieditor/widgets/");
+		case FILE_DIALOG_SAVE_AS_WIDGET:
+			file_browser_.open_dialog("Save as Widget", "./uieditor/widgets/");
 			file_dialog_mode_ = FILE_DIALOG_NONE;
 			break;
 		}
@@ -396,7 +396,7 @@ namespace uieditor
 			settings::add_new_saved_font_entry(filepath);
 		}
 
-		if (file_browser_.show_dialog("Save Widget", ImGuiFileBrowser::DialogMode::SAVE, ImVec2(0, 0), ".uiw"))
+		if (file_browser_.show_dialog("Save as Widget", ImGuiFileBrowser::DialogMode::SAVE, ImVec2(0, 0), ".uiw"))
 		{
 			auto filepath = file_browser_.selected_path;
 

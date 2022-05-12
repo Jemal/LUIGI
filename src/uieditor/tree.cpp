@@ -25,7 +25,12 @@ namespace uieditor
 
 	void tree::display_element(UIElement* element)
 	{
-		if (element->firstChild != nullptr)
+		if (element->is_from_widget)
+		{
+			return;
+		}
+
+		if (element->firstChild != nullptr && element->type != UIElementType::UI_WIDGET)
 		{
 			auto node_flags = ImGuiTreeNodeFlags_None | ImGuiTreeNodeFlags_SpanFullWidth;
 			if (element == properties::element_)

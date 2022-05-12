@@ -8,6 +8,7 @@ namespace uieditor
 		static void draw();
 
 		static float zoom_pct_;
+		static float grid_cell_size_;
 
 		static renderer::image_t* background_image_;
 
@@ -23,7 +24,7 @@ namespace uieditor
 		static void draw_text(UIElement* element, float x, float y, float red, float green, float blue, float alpha, const char* text, renderer::font_t* font, float font_height, float wrap_width, int alignment);
 	
 	private:
-		static float grid_cell_size_;
+		static ImVec2 clicked_mouse_pos_;
 
 		static ImDrawList* draw_list_;
 

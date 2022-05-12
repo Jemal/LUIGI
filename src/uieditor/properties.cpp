@@ -18,21 +18,21 @@ namespace uieditor
 	UIAnchorPair anchor_pair[ANCHOR_COUNT] =
 	{
 		{ "None", ANCHOR_NONE },
+		{ "All", ANCHOR_ALL },
 		{ "Left", ANCHOR_LEFT },
 		{ "Top", ANCHOR_TOP },
 		{ "Right", ANCHOR_RIGHT },
 		{ "Bottom", ANCHOR_BOTTOM },
-		{ "All", ANCHOR_ALL },
 		{ "Left-Right", ANCHOR_LEFT_RIGHT },
-		{ "Top-Bottom", ANCHOR_TOP_BOTTOM },
 		{ "Top-Left", ANCHOR_TOP_LEFT },
-		{ "Bottom-Left", ANCHOR_BOTTOM_LEFT },
 		{ "Top-Right", ANCHOR_TOP_RIGHT },
-		{ "Bottom-Right", ANCHOR_BOTTOM_RIGHT },
 		{ "Top-Left-Right", ANCHOR_TOP_LEFT_RIGHT },
-		{ "Bottom-Left-Right", ANCHOR_BOTTOM_LEFT_RIGHT },
+		{ "Top-Bottom", ANCHOR_TOP_BOTTOM },
 		{ "Top-Bottom-Left", ANCHOR_TOP_BOTTOM_LEFT },
 		{ "Top-Bottom-Right", ANCHOR_TOP_BOTTOM_RIGHT },
+		{ "Bottom-Left", ANCHOR_BOTTOM_LEFT },
+		{ "Bottom-Right", ANCHOR_BOTTOM_RIGHT },
+		{ "Bottom-Left-Right", ANCHOR_BOTTOM_LEFT_RIGHT },
 	};
 
 	void properties::begin_property(const char* label)

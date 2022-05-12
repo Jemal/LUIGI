@@ -28,6 +28,7 @@ namespace uieditor
 	ImVec4 canvas::region_ = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 	ImVec2 canvas::size_ = ImVec2(1280.0f, 720.0f);
 	ImVec2 canvas::mouse_pos_ = ImVec2(0.0f, 0.0f);
+	ImVec2 canvas::clicked_mouse_pos_ = ImVec2(0.0f, 0.0f);
 
 	bool canvas::in_focus_ = false;
 
@@ -112,7 +113,6 @@ namespace uieditor
 	{
 		auto color = IM_COL32(200, 200, 200, 75);
 		auto step = grid_cell_size_ = (size_.x * zoom_pct_) / app::grid_step_;
-		//auto step = grid_dist_ = app::grid_step_ * zoom_pct_;
 
 		for (auto x = fmodf(0.0f, step); x < (size_.x * zoom_pct_); x += step)
 		{
@@ -294,6 +294,11 @@ namespace uieditor
 		auto child = element->lastChild;
 		while (child)
 		{
+			if (child->is_from_widget)
+			{
+				break;
+			}
+
 			auto scaled_left = child->left * zoom_pct_;
 			auto scaled_top = child->top * zoom_pct_;
 			auto scaled_right = child->right * zoom_pct_;
@@ -352,6 +357,20 @@ namespace uieditor
 
 		if (in_bounds_x && in_bounds_y)
 		{
+			/*if (element->type == UIElementType::UI_WIDGET)
+			{
+				if (hover)
+				{
+					hovered_element_ = element;
+				}
+				else
+				{
+					properties::element_ = element;
+				}
+
+				return true;
+			}*/
+
 			in_child_bounds = element->firstChild != nullptr ? clicked_in_children_bounds(element, mouse_pos, hover) : true;
 
 			// if we didnt click within a child then just select the parent
@@ -381,7 +400,7 @@ namespace uieditor
 
 		auto snap_to_grid = app::show_grid_ && app::snap_to_grid_;
 
-		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left, snap_to_grid ? grid_cell_size_ : 10.0f))
+		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left, 10.0f))
 		{
 			auto delta = io->MouseDelta;
 			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
@@ -393,66 +412,175 @@ namespace uieditor
 			delta.x /= zoom_pct_;
 			delta.y /= zoom_pct_;
 
+			auto step = grid_cell_size_ / zoom_pct_;
+			auto mouse_click_delta = mouse_pos_ - clicked_mouse_pos_;
+
 			if (click_mode_ == UIAnchorType::ANCHOR_TOP_LEFT)
 			{
-				properties::element_->currentAnimationState.leftPx += delta.x;
-				properties::element_->currentAnimationState.topPx += delta.y;
+				if (snap_to_grid)
+				{
+					if (std::fabsf(mouse_click_delta.x) >= grid_cell_size_ && delta.x != 0.0f)
+					{
+						properties::element_->currentAnimationState.leftPx += delta.x > 0.0f ? step : -step;
+						clicked_mouse_pos_.x = mouse_pos_.x;
+					}
+
+					if (std::fabsf(mouse_click_delta.y) >= grid_cell_size_ && delta.y != 0.0f)
+					{
+						properties::element_->currentAnimationState.topPx += delta.y > 0.0f ? step : -step;
+						clicked_mouse_pos_.y = mouse_pos_.y;
+					}
+				}
+				else
+				{
+					properties::element_->currentAnimationState.leftPx += delta.x;
+					properties::element_->currentAnimationState.topPx += delta.y;
+				}
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_TOP_RIGHT)
 			{
-				properties::element_->currentAnimationState.rightPx += delta.x;
-				properties::element_->currentAnimationState.topPx += delta.y;
+				if (snap_to_grid)
+				{
+					if (std::fabsf(mouse_click_delta.x) >= grid_cell_size_ && delta.x != 0.0f)
+					{
+						properties::element_->currentAnimationState.rightPx += delta.x > 0.0f ? step : -step;
+						clicked_mouse_pos_.x = mouse_pos_.x;
+					}
+
+					if (std::fabsf(mouse_click_delta.y) >= grid_cell_size_ && delta.y != 0.0f)
+					{
+						properties::element_->currentAnimationState.topPx += delta.y > 0.0f ? step : -step;
+						clicked_mouse_pos_.y = mouse_pos_.y;
+					}
+				}
+				else
+				{
+					properties::element_->currentAnimationState.rightPx += delta.x;
+					properties::element_->currentAnimationState.topPx += delta.y;
+				}
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_TOP)
 			{
-				properties::element_->currentAnimationState.topPx += delta.y;
+				if (snap_to_grid)
+				{
+					if (std::fabsf(mouse_click_delta.y) >= grid_cell_size_ && delta.y != 0.0f)
+					{
+						properties::element_->currentAnimationState.topPx += delta.y > 0.0f ? step : -step;
+						clicked_mouse_pos_.y = mouse_pos_.y;
+					}
+				}
+				else
+				{
+					properties::element_->currentAnimationState.topPx += delta.y;
+				}
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_BOTTOM_LEFT)
 			{
-				properties::element_->currentAnimationState.leftPx += delta.x;
-				properties::element_->currentAnimationState.bottomPx += delta.y;
+				if (snap_to_grid)
+				{
+					if (std::fabsf(mouse_click_delta.x) >= grid_cell_size_ && delta.x != 0.0f)
+					{
+						properties::element_->currentAnimationState.leftPx += delta.x > 0.0f ? step : -step;
+						clicked_mouse_pos_.x = mouse_pos_.x;
+					}
+
+					if (std::fabsf(mouse_click_delta.y) >= grid_cell_size_ && delta.y != 0.0f)
+					{
+						properties::element_->currentAnimationState.bottomPx += delta.y > 0.0f ? step : -step;
+						clicked_mouse_pos_.y = mouse_pos_.y;
+					}
+				}
+				else
+				{
+					properties::element_->currentAnimationState.leftPx += delta.x;
+					properties::element_->currentAnimationState.bottomPx += delta.y;
+				}
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_BOTTOM_RIGHT)
 			{
-				properties::element_->currentAnimationState.rightPx += delta.x;
-				properties::element_->currentAnimationState.bottomPx += delta.y;
+				if (snap_to_grid)
+				{
+					if (std::fabsf(mouse_click_delta.x) >= grid_cell_size_ && delta.x != 0.0f)
+					{
+						properties::element_->currentAnimationState.rightPx += delta.x > 0.0f ? step : -step;
+						clicked_mouse_pos_.x = mouse_pos_.x;
+					}
+
+					if (std::fabsf(mouse_click_delta.y) >= grid_cell_size_ && delta.y != 0.0f)
+					{
+						properties::element_->currentAnimationState.bottomPx += delta.y > 0.0f ? step : -step;
+						clicked_mouse_pos_.y = mouse_pos_.y;
+					}
+				}
+				else
+				{
+					properties::element_->currentAnimationState.rightPx += delta.x;
+					properties::element_->currentAnimationState.bottomPx += delta.y;
+				}
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_BOTTOM)
 			{
-				properties::element_->currentAnimationState.bottomPx += delta.y;
+				if (snap_to_grid)
+				{
+					if (std::fabsf(mouse_click_delta.y) >= grid_cell_size_ && delta.y != 0.0f)
+					{
+						properties::element_->currentAnimationState.bottomPx += delta.y > 0.0f ? step : -step;
+						clicked_mouse_pos_.y = mouse_pos_.y;
+					}
+				}
+				else
+				{
+					properties::element_->currentAnimationState.bottomPx += delta.y;
+				}
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_LEFT)
 			{
-				properties::element_->currentAnimationState.leftPx += delta.x;
+				if (snap_to_grid)
+				{
+					if (std::fabsf(mouse_click_delta.x) >= grid_cell_size_ && delta.x != 0.0f)
+					{
+						properties::element_->currentAnimationState.leftPx += delta.x > 0.0f ? step : -step;
+						clicked_mouse_pos_.x = mouse_pos_.x;
+					}
+				}
+				else
+				{
+					properties::element_->currentAnimationState.leftPx += delta.x;
+				}
 			}
 			else if (click_mode_ == UIAnchorType::ANCHOR_RIGHT)
 			{
-				properties::element_->currentAnimationState.rightPx += delta.x;
+				if (snap_to_grid)
+				{
+					if (std::fabsf(mouse_click_delta.x) >= grid_cell_size_ && delta.x != 0.0f)
+					{
+						properties::element_->currentAnimationState.rightPx += delta.x > 0.0f ? step : -step;
+						clicked_mouse_pos_.x = mouse_pos_.x;
+					}
+				}
+				else
+				{
+					properties::element_->currentAnimationState.rightPx += delta.x;
+				}
 			}
 			else
 			{
 				if (snap_to_grid)
 				{
-					auto step = grid_cell_size_;
-
-					if (delta.x != 0.0f)
+					if (std::fabsf(mouse_click_delta.x) >= grid_cell_size_ && delta.x != 0.0f)
 					{
 						properties::element_->currentAnimationState.leftPx += delta.x > 0.0f ? step : -step;
 						properties::element_->currentAnimationState.rightPx += delta.x > 0.0f ? step : -step;
 
-						// this forces us to move our mouse again if we wanna move another grid cell
-						ImGui::GetIO().MouseDragMaxDistanceSqr[0] = 0.0f;
-						ImGui::ResetMouseDragDelta();
+						clicked_mouse_pos_.x = mouse_pos_.x;
 					}
 
-					if (delta.y != 0.0f)
+					if (std::fabsf(mouse_click_delta.y) >= grid_cell_size_ && delta.y != 0.0f )
 					{
 						properties::element_->currentAnimationState.topPx += delta.y > 0.0f ? step : -step;
 						properties::element_->currentAnimationState.bottomPx += delta.y > 0.0f ? step : -step;
 
-						// this forces us to move our mouse again if we wanna move another grid cell
-						ImGui::GetIO().MouseDragMaxDistanceSqr[0] = 0.0f;
-						ImGui::ResetMouseDragDelta();
+						clicked_mouse_pos_.y = mouse_pos_.y;
 					}
 				}
 				else
@@ -470,7 +598,7 @@ namespace uieditor
 
 	void canvas::draw()
 	{
-		if (ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_MenuBar))
+		if (ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar))
 		{
 			if (ImGui::BeginMenuBar())
 			{
@@ -510,8 +638,15 @@ namespace uieditor
 				button_size.y = 1.0f;
 			}
 
-			ImGui::InvisibleButton("canvas", button_size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-			//ImGui::SetItemUsingMouseWheel();
+			// canvas button
+			{
+				auto current_cursor_pos = ImGui::GetCursorPos();
+				auto delta = cursor_screen_pos - current_cursor_pos;
+
+				ImGui::SetCursorPos(ImVec2(region_.x - delta.x, region_.y - delta.y));
+				
+				ImGui::InvisibleButton("canvas", ImVec2(region_.z - region_.x, region_.w - region_.y), ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+			}
 
 			auto is_hovered = in_focus_ = ImGui::IsItemHovered();
 			auto is_active = ImGui::IsItemActive();
@@ -546,19 +681,15 @@ namespace uieditor
 
 				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
-					/*if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+					clicked_mouse_pos_ = mouse_pos_;
+
+					clicked_in_element_ = clicked_in_element_bounds(root, mouse_pos_, false);
+
+					if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 					{
 						if (properties::element_->parent != nullptr)
 						{
 							properties::element_ = properties::element_->parent;
-						}
-					}*/
-
-					//if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-					{
-						if (hover_mode_ == UIAnchorType::ANCHOR_NONE)
-						{
-							clicked_in_element_ = clicked_in_element_bounds(root, mouse_pos_, false);
 						}
 					}
 
@@ -580,7 +711,7 @@ namespace uieditor
 
 			if (is_active)
 			{
-				if (/*clicked_in_element_ &&*/ hovering_element_)
+				if (clicked_in_element_ && hovered_element_)
 				{
 					// dont want to move/resize root
 					if (properties::element_ != root)
@@ -608,13 +739,13 @@ namespace uieditor
 			// layout and render our elements
 			lui::core::frame();
 
+			// remove canvas clip
+			draw_list_->PopClipRect();
+
 			if (app::show_grid_)
 			{
 				draw_grid();
 			}
-
-			// remove canvas clip
-			draw_list_->PopClipRect();
 
 			if (properties::element_ != root)
 			{
