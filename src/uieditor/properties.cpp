@@ -281,6 +281,11 @@ namespace uieditor
 				
 				ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
 
+				if (properties::element_->locked)
+				{
+					ImGui::BeginDisabled();
+				}
+
 				if (ImGui::TreeNode(is_selected_element_root ? "Global Properties" : "Base Properties"))
 				{
 					if (ImGui::BeginTable("label_property", 2, ImGuiTableFlags_NoSavedSettings))
@@ -300,6 +305,11 @@ namespace uieditor
 					}
 
 					ImGui::TreePop();
+				}
+
+				if (properties::element_->locked)
+				{
+					ImGui::EndDisabled();
 				}
 			}
 		}
