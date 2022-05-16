@@ -112,20 +112,15 @@ namespace lui
 		// place the element based on where we clicked in the canvas
 		if (from_canvas)
 		{
-			// TODO: fix placment when zoom_pct_ != 1
-
 			child->currentAnimationState.topAnchor = true;
 			child->currentAnimationState.leftAnchor = true;
 			child->currentAnimationState.rightAnchor = false;
 			child->currentAnimationState.bottomAnchor = false;
 			
-			auto mouse_pos = uieditor::canvas::mouse_pos_;
-			//mouse_pos /= uieditor::canvas::zoom_pct_;
+			auto mouse_pos = uieditor::canvas::mouse_pos_ / uieditor::canvas::zoom_pct_;
 
-			auto left = uieditor::canvas::mouse_pos_.x - (element->left/* * uieditor::canvas::zoom_pct_*/);
-			auto top = uieditor::canvas::mouse_pos_.y - (element->top/* * uieditor::canvas::zoom_pct_*/);
-
-			//::log::print(0, "%g %g [%g, %g]", left, top, uieditor::canvas::mouse_pos.x, uieditor::canvas::mouse_pos.y);
+			auto left = mouse_pos.x - element->left;
+			auto top = mouse_pos.y - element->top;
 
 			child->currentAnimationState.leftPx = left;
 			child->currentAnimationState.topPx = top;

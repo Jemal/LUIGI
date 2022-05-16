@@ -25,6 +25,7 @@ namespace uieditor
 	
 	private:
 		static ImVec2 clicked_mouse_pos_;
+		static ImVec2 scroll_pos_;
 
 		static ImDrawList* draw_list_;
 
@@ -47,5 +48,7 @@ namespace uieditor
 		static bool clicked_in_element_bounds(UIElement* element, ImVec2 mouse_pos, bool hover);
 
 		static void handle_element_transform(UIElement* element);
+
+		static void draw_info();
 	};
 }

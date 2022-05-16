@@ -29,6 +29,7 @@ namespace uieditor
 	ImVec2 canvas::size_ = ImVec2(1280.0f, 720.0f);
 	ImVec2 canvas::mouse_pos_ = ImVec2(0.0f, 0.0f);
 	ImVec2 canvas::clicked_mouse_pos_ = ImVec2(0.0f, 0.0f);
+	ImVec2 canvas::scroll_pos_ = ImVec2(0.0f, 0.0f);
 
 	bool canvas::in_focus_ = false;
 
@@ -350,9 +351,6 @@ namespace uieditor
 		auto in_bounds_x = element_width >= 0.0f ? mouse_pos.x >= scaled_left && mouse_pos.x <= scaled_right : mouse_pos.x >= scaled_right && mouse_pos.x <= scaled_left;
 		auto in_bounds_y = element_height >= 0.0f ? mouse_pos.y >= scaled_top && mouse_pos.y <= scaled_bottom : mouse_pos.y >= scaled_bottom && mouse_pos.y <= scaled_top;
 
-		//auto in_bounds_x = mouse_pos.x >= scaled_left && mouse_pos.x <= scaled_right;
-		//auto in_bounds_y = mouse_pos.y >= scaled_top && mouse_pos.y <= scaled_bottom;
-
 		auto in_child_bounds = false;
 
 		if (in_bounds_x && in_bounds_y)
@@ -575,7 +573,7 @@ namespace uieditor
 						clicked_mouse_pos_.x = mouse_pos_.x;
 					}
 
-					if (std::fabsf(mouse_click_delta.y) >= grid_cell_size_ && delta.y != 0.0f )
+					if (std::fabsf(mouse_click_delta.y) >= grid_cell_size_ && delta.y != 0.0f)
 					{
 						properties::element_->currentAnimationState.topPx += delta.y > 0.0f ? step : -step;
 						properties::element_->currentAnimationState.bottomPx += delta.y > 0.0f ? step : -step;
@@ -594,6 +592,34 @@ namespace uieditor
 
 			lui::element::invalidate_layout(properties::element_);
 		}
+	}
+
+	void canvas::draw_info()
+	{
+		auto PAD = 2.0f;
+		auto* viewport = ImGui::GetMainViewport();
+
+		auto window_pos = ImVec2(viewport->WorkPos.x + PAD, viewport->WorkPos.y + viewport->WorkSize.y - PAD);
+
+		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+		ImGui::SetNextWindowViewport(viewport->ID);
+
+		ImGui::PushStyleColor(ImGuiCol_Border, 0.0f);
+
+		if (ImGui::Begin("Canvas Info", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
+		{
+			auto canvas_mouse_pos = mouse_pos_ / zoom_pct_;
+			if (!ImGui::IsMousePosValid())
+			{
+				canvas_mouse_pos = ImVec2(0.0f, 0.0f);
+			}
+
+			ImGui::Text("Mouse Position: (%.0f, %.0f) | Zoom: %.0f%%", canvas_mouse_pos.x, canvas_mouse_pos.y, zoom_pct_ * 100.0f);
+		}
+
+		ImGui::End();
+
+		ImGui::PopStyleColor();
 	}
 
 	void canvas::draw()
@@ -626,17 +652,13 @@ namespace uieditor
 			auto cursor_screen_pos = ImGui::GetCursorScreenPos();
 
 			auto region_min = ImVec2(cursor_screen_pos.x + ((canvas_window_size.x - size.x) / 2.0f), cursor_screen_pos.y + ((canvas_window_size.y - size.y) / 2.0f));
+
+			region_min.x += scroll_pos_.x;
+			region_min.y += scroll_pos_.y;
+
 			auto region_max = ImVec2(region_min.x + size.x, region_min.y + size.y);
 
 			region_ = ImVec4(region_min.x, region_min.y, region_max.x, region_max.y);
-
-			// the implementation of zooming the canvas is super messy
-			// everything works fine currently but you cant scroll the canvas if zoom > 100%
-			auto button_size = ImVec2(content_region_max.x - content_region_min.x, content_region_max.y - content_region_min.y);
-			if (button_size.y <= 0.0f)
-			{
-				button_size.y = 1.0f;
-			}
 
 			// canvas button
 			{
@@ -644,8 +666,8 @@ namespace uieditor
 				auto delta = cursor_screen_pos - current_cursor_pos;
 
 				ImGui::SetCursorPos(ImVec2(region_.x - delta.x, region_.y - delta.y));
-				
-				ImGui::InvisibleButton("canvas", ImVec2(region_.z - region_.x, region_.w - region_.y), ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+
+				ImGui::InvisibleButton("CANVAS", ImVec2(region_.z - region_.x, region_.w - region_.y), ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight | ImGuiButtonFlags_MouseButtonMiddle);
 			}
 
 			auto is_hovered = in_focus_ = ImGui::IsItemHovered();
@@ -658,6 +680,18 @@ namespace uieditor
 				mouse_pos_ = ImVec2(io->MousePos.x - region_.x, io->MousePos.y - region_.y);
 			}
 
+			if (is_active && ImGui::IsMouseDragging(ImGuiMouseButton_Right))
+			{
+				scroll_pos_.x += io->MouseDelta.x;
+				scroll_pos_.y += io->MouseDelta.y;
+			}
+
+			auto drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+			if (drag_delta.x == 0.0f && drag_delta.y == 0.0f)
+			{
+				lui::element::context_menu(properties::element_, true);
+			}
+
 			draw_list_ = ImGui::GetWindowDrawList();
 
 			// remove anti aliasing lines from draw list
@@ -666,7 +700,12 @@ namespace uieditor
 				draw_list_->Flags &= ~ImDrawListFlags_AntiAliasedLines;
 			}
 
-			lui::element::context_menu(properties::element_, true);
+			// center canvas if we're not over 100% zoom
+			if (zoom_pct_ <= 1.0f)
+			{
+				scroll_pos_.x = 0.0f;
+				scroll_pos_.y = 0.0f;
+			}
 
 			if (is_hovered)
 			{
@@ -757,16 +796,7 @@ namespace uieditor
 				highlight_selected_element(hovered_element_, true);
 			}
 
-			// draw zoom pct
-			{
-				auto font = ImGui::GetIO().FontDefault;
-
-				auto x = cursor_screen_pos.x;
-				auto y = content_region_max.y - font->FontSize;
-				auto zoom = utils::string::va("Zoom: %g%%", zoom_pct_ * 100.0f);
-
-				draw_list_->AddText(font, font->FontSize, ImVec2(x, y), IM_COL32(255, 255, 255, 255), zoom);
-			}
+			draw_info();
 		}
 
 		ImGui::End();
