@@ -139,13 +139,17 @@ namespace lui
 
 	int element::string_to_type(std::string type)
 	{
-		if (type == "UIImage"s)
+		if (type == "Image"s)
 		{
 			return UI_IMAGE;
 		}
-		else if (type == "UIText"s)
+		else if (type == "Text"s)
 		{
 			return UI_TEXT;
+		}
+		else if (type == "Widget"s)
+		{
+			return UI_WIDGET;
 		}
 
 		return UI_ELEMENT;

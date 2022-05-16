@@ -603,6 +603,7 @@ namespace uieditor
 
 		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, ImVec2(0.0f, 1.0f));
 		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::SetNextWindowBgAlpha(0.0f);
 
 		ImGui::PushStyleColor(ImGuiCol_Border, 0.0f);
 
