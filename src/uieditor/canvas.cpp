@@ -353,22 +353,11 @@ namespace uieditor
 
 		auto in_child_bounds = false;
 
-		if (in_bounds_x && in_bounds_y)
+		// allows us to click and move elements outside of the root
+		auto in_bounds = element == lui::core::get_root_element() ? true : in_bounds_x && in_bounds_y;
+
+		if (in_bounds)
 		{
-			/*if (element->type == UIElementType::UI_WIDGET)
-			{
-				if (hover)
-				{
-					hovered_element_ = element;
-				}
-				else
-				{
-					properties::element_ = element;
-				}
-
-				return true;
-			}*/
-
 			in_child_bounds = element->firstChild != nullptr ? clicked_in_children_bounds(element, mouse_pos, hover) : true;
 
 			// if we didnt click within a child then just select the parent
@@ -663,12 +652,13 @@ namespace uieditor
 
 			// canvas button
 			{
-				auto current_cursor_pos = ImGui::GetCursorPos();
-				auto delta = cursor_screen_pos - current_cursor_pos;
+				auto button_size = ImVec2(content_region_max.x - content_region_min.x, content_region_max.y - content_region_min.y);
+				if (button_size.y <= 0.0f)
+				{
+					button_size.y = 1.0f;
+				}
 
-				ImGui::SetCursorPos(ImVec2(region_.x - delta.x, region_.y - delta.y));
-
-				ImGui::InvisibleButton("CANVAS", ImVec2(region_.z - region_.x, region_.w - region_.y), ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight | ImGuiButtonFlags_MouseButtonMiddle);
+				ImGui::InvisibleButton("canvas", button_size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 			}
 
 			auto is_hovered = in_focus_ = ImGui::IsItemHovered();
@@ -714,7 +704,7 @@ namespace uieditor
 				if (wheel)
 				{
 					zoom_pct_ += wheel * 0.05f;
-					zoom_pct_ = std::clamp(zoom_pct_, 0.25f, 3.0f);
+					zoom_pct_ = std::clamp(zoom_pct_, 0.25f, 5.0f);
 				}
 
 				hovering_element_ = clicked_in_element_bounds(root, mouse_pos_, true);
