@@ -43,7 +43,7 @@ enum UIAnchorType
 
 enum AnimationStateFlags
 {
-	AS_IN_USE = 1 << 0,
+	AS_IN_USE = 1 << 0, // pretty sure this flag stands for visible, oh well
 	AS_LAYOUT_CACHED = 1 << 1,
 	AS_STENCIL = 1 << 2,
 	AS_FOCUS = 1 << 3,
@@ -77,8 +77,7 @@ enum AnimationStateFlags
 	AS_EASE_IN = 1 << 24,
 	AS_EASE_OUT = 1 << 25,
 
-	AS_USE_GAMETIME = 1 << 26,
-	AS_DEBUG_DRAW_RECT = 1 << 27
+	AS_USE_GAMETIME = 1 << 26
 };
 
 struct UIAnimationState
@@ -122,6 +121,9 @@ struct UIElement
 {
 	std::string id; // used for imgui
 	std::string name; // element name (would be the .id property in LUI)
+
+	bool locked;
+	bool visible;
 
 	std::string text;
 
@@ -202,6 +204,8 @@ namespace lui
 		static void render(UIElement* element, UIElement* root, float red, float green, float blue, float alpha);
 
 		static void context_menu(UIElement* element, bool from_canvas);
+
+		static void update_locked_state(UIElement* element, bool locked);
 
 		static void serialize(UIElement* element, nlohmann::ordered_json* json, bool is_widget);
 		static void deserialize(UIElement* element, std::string name, nlohmann::ordered_json* json, bool is_widget);

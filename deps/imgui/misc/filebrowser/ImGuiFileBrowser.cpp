@@ -369,7 +369,7 @@ bool ImGuiFileBrowser::renderFileListRegion()
 		{
 			items++;
 
-			std::string dir_with_icon = convert_u8_string(ICON_IGFD_FOLDER);
+			std::string dir_with_icon = ICON_FK_FOLDER;
 			dir_with_icon.append(" ");
 			dir_with_icon.append(filtered_dirs[i]->name);
 
@@ -405,11 +405,11 @@ bool ImGuiFileBrowser::renderFileListRegion()
 
 			if (filtered_files[i]->name.ends_with(".png"))
 			{
-				file_with_icon = convert_u8_string(ICON_IGFD_FILE_PIC);
+				file_with_icon = ICON_FK_PICTURE_O;
 			}
 			else
 			{
-				file_with_icon = convert_u8_string(ICON_IGFD_FILE);
+				file_with_icon = ICON_FK_FILE;
 			}
 
 			file_with_icon.append(" ");

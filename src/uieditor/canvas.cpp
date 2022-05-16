@@ -750,7 +750,7 @@ namespace uieditor
 
 			if (is_active)
 			{
-				if (clicked_in_element_ && hovered_element_)
+				if (clicked_in_element_ && hovered_element_ && !properties::element_->locked)
 				{
 					// dont want to move/resize root
 					if (properties::element_ != root)

@@ -95,6 +95,8 @@ namespace lui
 
 			element->currentAnimationState.flags |= AS_BOTTOM_PX | AS_BOTTOM_PT | AS_RIGHT_PX | AS_RIGHT_PT | AS_TOP_PX | AS_TOP_PT | AS_ALPHA | AS_BLUE | AS_GREEN | AS_RED | AS_LEFT_PT | AS_LEFT_PX;
 
+			element->visible = true;
+
 			core::allocated_elements_++;
 		}
 	}
@@ -151,16 +153,17 @@ namespace lui
 
 	std::string element::type_to_string(int type)
 	{
-		if (type == UIElementType::UI_IMAGE)
+		switch (type)
 		{
-			return "UIImage";
+		case UI_IMAGE:
+			return "Image";
+		case UI_TEXT:
+			return "Text";
+		case UI_WIDGET:
+			return "Widget";
+		default:
+			return "Element";
 		}
-		else if (type == UIElementType::UI_TEXT)
-		{
-			return "UIText";
-		}
-
-		return "UIElement";
 	}
 
 	void element::remove_element(UIElement* element)
@@ -593,14 +596,19 @@ namespace lui
 	{
 		while (1)
 		{
-			auto should_render = false;
+			auto in_use = false;
 
 			if (element)
 			{
-				should_render = (element->currentAnimationState.flags & AS_IN_USE) != 0;
+				in_use = (element->currentAnimationState.flags & AS_IN_USE) != 0;
 			}
 
-			if (!should_render)
+			if (!in_use)
+			{
+				break;
+			}
+
+			if (!element->visible)
 			{
 				break;
 			}
@@ -776,6 +784,19 @@ namespace lui
 			}
 
 			ImGui::EndPopup();
+		}
+	}
+
+	void element::update_locked_state(UIElement* element, bool locked)
+	{
+		auto child = element->firstChild;
+		while (child)
+		{
+			child->locked = locked;
+
+			element::update_locked_state(child, locked);
+
+			child = child->nextSibling;
 		}
 	}
 

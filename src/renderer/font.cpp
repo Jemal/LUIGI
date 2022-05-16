@@ -38,13 +38,13 @@ namespace renderer
 		io.FontDefault = io.Fonts->AddFontFromMemoryCompressedTTF(opensans_semibold_compressed_data, opensans_semibold_compressed_size, 18.0f, &cfg);
 
 		// add our icons to the default font
-		static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
+		static const ImWchar icons_ranges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
 
 		ImFontConfig icons_config;
 		icons_config.MergeMode = true;
 		icons_config.PixelSnapH = true;
 
-		io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);
+		io.Fonts->AddFontFromMemoryCompressedBase85TTF(ForkAwesome_compressed_data_base85, 15.0f, &icons_config, icons_ranges);
 	}
 
 	void font::register_font(std::string name, std::string path, int size)

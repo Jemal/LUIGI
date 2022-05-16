@@ -277,6 +277,8 @@ namespace uieditor
 				auto root = lui::core::get_root_element();
 				auto is_selected_element_root = element_ == root;
 
+				ImGui::Text("Type: %s", lui::element::type_to_string(element_->type).data());
+				
 				ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
 
 				if (ImGui::TreeNode(is_selected_element_root ? "Global Properties" : "Base Properties"))

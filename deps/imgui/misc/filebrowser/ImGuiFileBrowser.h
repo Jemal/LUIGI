@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "Font.h"
+#include "misc/imgui_fork_awesome.h"
 
 class ImGuiFileBrowser
 {
@@ -15,9 +15,9 @@ public:
 
 	enum class DialogMode
 	{
-		SELECT, //Select Directory Mode
-		OPEN,   //Open File mode
-		SAVE    //Save File mode.
+		SELECT,			// Select Directory Mode
+		OPEN,			// Open File mode
+		SAVE			// Save File mode.
 	};
 
 	void open_dialog(std::string label, std::string dir = "./");

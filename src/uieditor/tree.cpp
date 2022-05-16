@@ -2,6 +2,18 @@
 #include "tree.hpp"
 #include "properties.hpp"
 
+static void PushStyleCompact()
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, (float)(int)(style.FramePadding.y * 0.60f)));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x, (float)(int)(style.ItemSpacing.y * 0.60f)));
+}
+
+static void PopStyleCompact()
+{
+	ImGui::PopStyleVar(2);
+}
+
 namespace uieditor
 {
 	void tree::select_element(UIElement* element)
@@ -18,9 +30,26 @@ namespace uieditor
 			select_element(element);
 		}
 
-		/*ImGui::TableNextColumn();
+		ImGui::TableNextColumn();
 
-		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), lui::element::type_to_string(element->type).data());*/
+		PushStyleCompact();
+
+		char buf[64];
+		sprintf(buf, "###%sVisible", element->name.data()); // ### operator override ID ignoring the preceding label
+
+		ImGui::Checkbox(buf, &element->visible);
+
+		ImGui::TableNextColumn();
+
+		char bufl[64];
+		sprintf(bufl, "###%sLocked", element->name.data()); // ### operator override ID ignoring the preceding label
+
+		if (ImGui::Checkbox(bufl, &element->locked))
+		{
+			lui::element::update_locked_state(element, element->locked);
+		}
+
+		PopStyleCompact();
 	}
 
 	void tree::display_element(UIElement* element)
@@ -29,6 +58,9 @@ namespace uieditor
 		{
 			return;
 		}
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
 
 		if (element->firstChild != nullptr && element->type != UIElementType::UI_WIDGET)
 		{
@@ -78,7 +110,6 @@ namespace uieditor
 
 				ImGui::TreePop();
 			}
-
 		}
 		else
 		{
@@ -102,7 +133,21 @@ namespace uieditor
 	{
 		if (ImGui::Begin("Tree"))
 		{
-			display_element(lui::core::get_root_element());
+			if (ImGui::BeginTable("3ways", 3, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoSavedSettings))
+			{
+				char buf[64];
+				sprintf(buf, "Elements (%i/%i)", lui::core::allocated_elements_, LUI_MAX_ELEMENTS);
+
+				ImGui::TableSetupColumn(buf, ImGuiTableColumnFlags_NoHide);
+
+				ImGui::TableSetupColumn(" " ICON_FK_EYE, ImGuiTableColumnFlags_WidthFixed, 20);
+				ImGui::TableSetupColumn("  " ICON_FK_LOCK, ImGuiTableColumnFlags_WidthFixed, 20);
+				ImGui::TableHeadersRow();
+
+				display_element(lui::core::get_root_element());
+
+				ImGui::EndTable();
+			}
 		}
 
 		ImGui::End();
