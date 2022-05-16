@@ -614,7 +614,9 @@ namespace lui
 
 			if (!element->visible)
 			{
-				break;
+				element = element->nextSibling;
+
+				continue;
 			}
 
 			auto current_red = red * element->currentAnimationState.red;
@@ -681,53 +683,57 @@ namespace lui
 
 			auto is_root_element = element == lui::core::get_root_element();
 
-			if (ImGui::BeginMenu("Add"))
+			// hmmmmmmmmmmmmmmmmmmmmmmmmmm
+			if (element->type != UI_WIDGET)
 			{
-				if (ImGui::MenuItem("Element"))
+				if (ImGui::BeginMenu("Add"))
 				{
-					auto new_element = add_and_select_element(from_canvas);
-
-					new_element->type = UI_ELEMENT;
-					new_element->layoutFunction = NULL;
-					new_element->renderFunction = NULL;
-				}
-
-				if (ImGui::MenuItem("Image"))
-				{
-					auto new_element = add_and_select_element(from_canvas);
-
-					new_element->type = UI_IMAGE;
-					new_element->renderFunction = lui::element::ui_image_render;
-				}
-
-				if (ImGui::MenuItem("Text"))
-				{
-					auto new_element = add_and_select_element(from_canvas);
-
-					new_element->type = UI_TEXT;
-					new_element->renderFunction = lui::element::ui_text_render;
-					new_element->text = "New"s;
-				}
-
-				if (!uieditor::widgets::widgets_.empty())
-				{
-					ImGui::Separator();
-
-					if (ImGui::BeginMenu("Widgets"))
+					if (ImGui::MenuItem("Element"))
 					{
-						for (auto& widget : uieditor::widgets::widgets_)
-						{
-							if (ImGui::MenuItem(widget.data()))
-							{
-								uieditor::widgets::load_widget(widget.data());
-							}
-						}
+						auto new_element = add_and_select_element(from_canvas);
 
-						ImGui::EndMenu();
+						new_element->type = UI_ELEMENT;
+						new_element->layoutFunction = NULL;
+						new_element->renderFunction = NULL;
 					}
-				}
 
-				ImGui::EndMenu();
+					if (ImGui::MenuItem("Image"))
+					{
+						auto new_element = add_and_select_element(from_canvas);
+
+						new_element->type = UI_IMAGE;
+						new_element->renderFunction = lui::element::ui_image_render;
+					}
+
+					if (ImGui::MenuItem("Text"))
+					{
+						auto new_element = add_and_select_element(from_canvas);
+
+						new_element->type = UI_TEXT;
+						new_element->renderFunction = lui::element::ui_text_render;
+						new_element->text = "New"s;
+					}
+
+					if (!uieditor::widgets::widgets_.empty())
+					{
+						ImGui::Separator();
+
+						if (ImGui::BeginMenu("Widgets"))
+						{
+							for (auto& widget : uieditor::widgets::widgets_)
+							{
+								if (ImGui::MenuItem(widget.data()))
+								{
+									uieditor::widgets::load_widget(widget.data());
+								}
+							}
+
+							ImGui::EndMenu();
+						}
+					}
+
+					ImGui::EndMenu();
+				}
 			}
 
 			if (!is_root_element)

@@ -358,7 +358,16 @@ namespace uieditor
 
 		if (in_bounds)
 		{
-			in_child_bounds = element->firstChild != nullptr ? clicked_in_children_bounds(element, mouse_pos, hover) : true;
+			if (element->type == UI_WIDGET)
+			{
+				in_child_bounds = true;
+
+				properties::element_ = element;
+			}
+			else
+			{
+				in_child_bounds = element->firstChild != nullptr ? clicked_in_children_bounds(element, mouse_pos, hover) : true;
+			}
 
 			// if we didnt click within a child then just select the parent
 			if (!in_child_bounds)

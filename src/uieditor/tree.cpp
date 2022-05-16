@@ -35,14 +35,14 @@ namespace uieditor
 		PushStyleCompact();
 
 		char buf[64];
-		sprintf(buf, "###%sVisible", element->name.data()); // ### operator override ID ignoring the preceding label
+		sprintf(buf, "##%sVisible", element->id.data()); // ### operator override ID ignoring the preceding label
 
 		ImGui::Checkbox(buf, &element->visible);
 
 		ImGui::TableNextColumn();
 
 		char bufl[64];
-		sprintf(bufl, "###%sLocked", element->name.data()); // ### operator override ID ignoring the preceding label
+		sprintf(bufl, "##%sLocked", element->id.data()); // ### operator override ID ignoring the preceding label
 
 		if (ImGui::Checkbox(bufl, &element->locked))
 		{
