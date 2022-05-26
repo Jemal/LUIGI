@@ -1,5 +1,5 @@
 dependencies = {
-	base = "./deps",
+	base = "./vendor",
 
 	load = function()
 		dir = path.join(dependencies.base, "premake/*.lua")
@@ -38,7 +38,7 @@ dependencies = {
 
 dependencies.load()
 
-workspace "luigi"
+workspace "uieditor"
 	architecture "x64"
 	characterset "ASCII"
 	cppdialect "c++20"
@@ -77,10 +77,10 @@ workspace "luigi"
 		flags { "FatalCompileWarnings" }
 	filter {}
 
-	startproject "luigi"
+	startproject "uieditor"
 
-	project "luigi"
-		kind "WindowedApp"
+	project "uieditor"
+		kind "ConsoleApp"
 		language "C++"
 
 		warnings "Off"
@@ -94,8 +94,7 @@ workspace "luigi"
 
 		files {
 			"./src/**.hpp",
-			"./src/**.cpp",
-			"./src/uieditor/rc/**.*"
+			"./src/**.cpp"
 		}
 
 		includedirs {
@@ -112,5 +111,5 @@ workspace "luigi"
 
 		dependencies.imports()
 
-	group "deps"
+	group "vendor"
 		dependencies.projects()

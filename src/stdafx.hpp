@@ -64,30 +64,4 @@
 #include <bitset>
 #include <stack>
 
-#define M_PI	3.14159265358979323846
-
-#pragma warning(push)
-#pragma warning(disable: 6387)
-#pragma warning(disable: 26819)
-#pragma warning(disable: 33010)
-#include <imgui.h>
-#include <backends/imgui_impl_dx11.h>
-#include <backends/imgui_impl_win32.h>
-#include <misc/imgui_uie.h>
-#include <misc/freetype/imgui_freetype.h>
-#include <misc/cpp/imgui_stdlib.h>
-#include <misc/filebrowser/ImGuiFileBrowser.h>
-#pragma warning(pop)
-
-#include "utils/io.hpp"
-#include "utils/memory.hpp"
-#include "utils/string.hpp"
-#include "utils/json.hpp"
-
-#include "renderer/engine.hpp"
-#include "renderer/font.hpp"
-#include "renderer/image.hpp"
-
-#include "lui/core.hpp"
-
 using namespace std::literals;
