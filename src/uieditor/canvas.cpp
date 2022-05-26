@@ -769,7 +769,7 @@ namespace uieditor
 
 			if (app::show_background_)
 			{
-				if (background_image_)
+				if (background_image_ != nullptr)
 				{
 					draw_image(background_image_->texture, 0.0f, 0.0f, size_.x, size_.y, 0.0f, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 				}

@@ -28,6 +28,8 @@ namespace uieditor
 
 		renderer::image::images_.clear();
 
+		canvas::background_image_ = nullptr;
+
 		state_ = PROJECT_NEW;
 
 		set_project_name("Untitled", true);
