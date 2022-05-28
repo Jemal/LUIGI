@@ -1,7 +1,5 @@
 #include <stdafx.hpp>
 
-#include <utils/entt.hpp>
-
 struct AnimationState
 {
 	// pixel position based on anchors
@@ -48,38 +46,26 @@ struct UIElement
 	AnimationState currentAnimationState;
 };
 
-static entt::registry lui_registry_;
-
-entt::entity create_element(entt::registry& reg)
-{
-	auto entity = reg.create();
-
-	reg.emplace<UIElement>(entity, static_cast<std::uint32_t>(reg.size() - 1), "element");
-
-	return entity;
-}
-
-void update_elements(entt::registry& reg)
-{
-	auto view = reg.view<UIElement>();
-
-	view.each([](UIElement& element)
-	{
-		// update element name based on id
-		element.name.append(std::to_string(element.id));
-	
-		printf("%s\n", element.name.data());
-	});
-}
-
-int main()
-{
-	for (auto i = 0; i < 20; ++i)
-	{
-		auto element = create_element(lui_registry_);
-	}
-
-	update_elements(lui_registry_);
-
-	return 0;
-}
+//static entt::registry lui_registry_;
+//
+//entt::entity create_element(entt::registry& reg)
+//{
+//	auto entity = reg.create();
+//
+//	reg.emplace<UIElement>(entity, static_cast<std::uint32_t>(reg.size() - 1), "element");
+//
+//	return entity;
+//}
+//
+//void update_elements(entt::registry& reg)
+//{
+//	auto view = reg.view<UIElement>();
+//
+//	view.each([](UIElement& element)
+//	{
+//		// update element name based on id
+//		element.name.append(std::to_string(element.id));
+//	
+//		printf("%s\n", element.name.data());
+//	});
+//}
