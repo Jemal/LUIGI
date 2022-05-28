@@ -7,3 +7,5 @@ build/
 **.vcxproj
 **.vcxproj.filters
 **.vcxproj.user
+
+version.hpp
