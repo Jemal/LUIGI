@@ -5,8 +5,7 @@ project "UIEditor"
 	warnings "Off"
 
 	links {
-		"d3d11",
-		"d3dcompiler"
+		"d3d11"
 	}
 
 	pchheader "stdafx.hpp"
@@ -35,6 +34,8 @@ project "UIEditor"
 	}
 
 	submodule.include({
+		"entt",
 		"imgui",
 		"freetype",
+		"stb_image"
 	})

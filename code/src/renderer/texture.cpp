@@ -1,9 +1,9 @@
 #include <stdafx.hpp>
-#include "dx11.hpp"
+#include "renderer.hpp"
 #include "texture.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../stb_image/stb_image.h"
+#include "stb_image.h"
 
 namespace uie
 {
@@ -38,7 +38,7 @@ namespace uie
 			subResource.pSysMem = image_data;
 			subResource.SysMemPitch = desc.Width * 4;
 			subResource.SysMemSlicePitch = 0;
-			dx11::device_->CreateTexture2D(&desc, &subResource, &pTexture);
+			renderer::device_->CreateTexture2D(&desc, &subResource, &pTexture);
 
 			// Create texture view
 			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -47,7 +47,7 @@ namespace uie
 			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			srvDesc.Texture2D.MipLevels = desc.MipLevels;
 			srvDesc.Texture2D.MostDetailedMip = 0;
-			dx11::device_->CreateShaderResourceView(pTexture, &srvDesc, out_srv);
+			renderer::device_->CreateShaderResourceView(pTexture, &srvDesc, out_srv);
 			pTexture->Release();
 
 			*out_width = image_width;

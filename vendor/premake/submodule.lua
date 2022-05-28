@@ -10,18 +10,14 @@ submodule.include = function( list )
 	for i, name in pairs(list) do
 		local dep = submodule.deps[i]
 		if dep ~= nil then
-			dependson(name)
-			links(name)
+			if dep.type ~= "include" then
+				dependson(name)
+				links(name)
+			end
 
 			if dep.defines ~= nil then
 				for i, define in pairs(dep.defines) do
 					defines { define }
-				end
-			end
-
-			if dep.undefines ~= nil then
-				for i, undefine in pairs(dep.undefines) do
-					undefines { undefine }
 				end
 			end
 
@@ -36,39 +32,44 @@ end
 
 submodule.projects = function()
 	for i, dep in pairs(submodule.deps) do
-		project(dep.name)
-		language(dep.language)
-		kind(dep.type)
-		location(submodule.path)
+		if dep.type ~= "include" then
+			project(dep.name)
+			language(dep.language)
+			kind(dep.type)
+			location(submodule.path)
 		
-		warnings "Off"
+			warnings "Off"
 
-		-- we should always have includes
-		for i, include in pairs(dep.includes) do
-			includedirs { include }
-		end
-
-		if dep.files ~= nil then
-			for i, file in pairs(dep.files) do
-				files { file }
+			-- we should always have includes
+			for i, include in pairs(dep.includes) do
+				includedirs { include }
 			end
-		end
 
-		if dep.defines ~= nil then
-			for i, define in pairs(dep.defines) do
-				defines { define }
+			if dep.files ~= nil then
+				for i, file in pairs(dep.files) do
+					files { file }
+				end
 			end
-		end
 
-		if dep.undefines ~= nil then
-			for i, undefine in pairs(dep.undefines) do
-				undefines { undefine }
+			if dep.defines ~= nil then
+				for i, define in pairs(dep.defines) do
+					defines { define }
+				end
 			end
 		end
 	end
 end
 
 -- !! DEFINE SUBMODULES BELOW !!
+
+submodule.define({
+	name = "entt",
+	language = "C++",
+	type = "include",
+	includes = {
+		"vendor/entt"
+	}
+})
 
 submodule.define({
 	name = "freetype",
@@ -116,9 +117,6 @@ submodule.define({
 	defines = {
 		"FT2_BUILD_LIBRARY",
 		"FT_OPTION_AUTOFIT2"
-	},
-	undefines = {
-		"FT_CONFIG_OPTION_USE_ZLIB"
 	}
 })
 
@@ -133,5 +131,14 @@ submodule.define({
 	files = {
 		"vendor/imgui/**.cpp",
 		"vendor/imgui/**.h"
+	}
+})
+
+submodule.define({
+	name = "stb_image",
+	language = "C++",
+	type = "include",
+	includes = {
+		"vendor/stb_image"
 	}
 })

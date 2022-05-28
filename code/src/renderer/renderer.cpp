@@ -1,41 +1,61 @@
 #include <stdafx.hpp>
-#include "dx11.hpp"
 #include "renderer.hpp"
 
 namespace uie
 {
+	ID3D11DeviceContext* renderer::device_context_ = nullptr;
+	ID3D11Device* renderer::device_ = nullptr;
+	IDXGISwapChain* renderer::swapchain_ = nullptr;
+	ID3D11RenderTargetView* renderer::render_target_ = nullptr;
+
 	void renderer::init(HWND& hwnd)
 	{
-		printf("%s\n", __FUNCTION__);
+		// initialize swapchain
+		DXGI_SWAP_CHAIN_DESC swapchain_desc;
+		ZeroMemory(&swapchain_desc, sizeof(DXGI_SWAP_CHAIN_DESC));
+		swapchain_desc.BufferCount = 1;
+		swapchain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapchain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapchain_desc.OutputWindow = hwnd;
+		swapchain_desc.SampleDesc.Count = 1;
+		swapchain_desc.Windowed = TRUE;
 
-		dx11::init(hwnd);
+		// create swapchain, device, and device context
+		D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, NULL, NULL, D3D11_SDK_VERSION, &swapchain_desc, &swapchain_, &device_, NULL, &device_context_);
+
+		// retrieve backbuffer address 
+		ID3D11Texture2D* back_buffer;
+		swapchain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&back_buffer);
+		device_->CreateRenderTargetView(back_buffer, NULL, &render_target_);
+		back_buffer->Release();
 	}
 
 	void renderer::shutdown()
 	{
-		printf("%s\n", __FUNCTION__);
-
-		dx11::shutdown();
+		swapchain_->Release();
+		render_target_->Release();
+		device_context_->Release();
+		device_->Release();
 	}
 
 	void renderer::resize(std::uint32_t width, std::uint32_t height)
 	{
-		if (dx11::device_)
+		if (device_)
 		{
 			// clean the render target
-			if (dx11::render_target_)
+			if (render_target_)
 			{
-				dx11::render_target_->Release();
+				render_target_->Release();
 			}
 
 			// resize buffers
-			dx11::swapchain_->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+			swapchain_->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
 
 			// create render target
 			ID3D11Texture2D* back_buffer;
-			dx11::swapchain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&back_buffer);
+			swapchain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&back_buffer);
 
-			dx11::device_->CreateRenderTargetView(back_buffer, NULL, &dx11::render_target_);
+			device_->CreateRenderTargetView(back_buffer, NULL, &render_target_);
 
 			back_buffer->Release();
 		}
@@ -43,14 +63,14 @@ namespace uie
 
 	void renderer::begin_frame()
 	{
-		ImGui_ImplDX11_NewFrame();
+		/*ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+		ImGui::NewFrame();*/
 	}
 
 	void renderer::end_frame()
 	{
-		ImGui::Render();
+		/*ImGui::Render();
 
 		dx11::device_context_->OMSetRenderTargets(1, &dx11::render_target_, NULL);
 
@@ -59,6 +79,6 @@ namespace uie
 
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-		dx11::swapchain_->Present(0, 0);
+		dx11::swapchain_->Present(0, 0);*/
 	}
 }

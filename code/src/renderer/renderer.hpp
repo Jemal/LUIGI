@@ -13,6 +13,11 @@ namespace uie
 		static void begin_frame();
 		static void end_frame();
 
+		static ID3D11Device* device_;
+		static ID3D11DeviceContext* device_context_;
+		static IDXGISwapChain* swapchain_;
+		static ID3D11RenderTargetView* render_target_;
+
 	private:
 
 	};
