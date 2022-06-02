@@ -1,14 +1,22 @@
 submodule = {}
-submodule.deps = {}
+submodule.list = {}
 submodule.path = "vendor/"
 
 submodule.define = function( dep )
-	table.insert(submodule.deps, dep)
+	table.insert(submodule.list, dep)
 end
 
 submodule.include = function( list )
-	for i, name in pairs(list) do
-		local dep = submodule.deps[i]
+	for _, name in pairs(list) do
+		local dep = {}
+
+		for i, v in ipairs(submodule.list) do
+			if v.name == name then
+				dep = v
+				break
+			end
+		end
+
 		if dep ~= nil then
 			if dep.type ~= "include" then
 				dependson(name)
@@ -31,7 +39,7 @@ submodule.include = function( list )
 end
 
 submodule.projects = function()
-	for i, dep in pairs(submodule.deps) do
+	for i, dep in pairs(submodule.list) do
 		if dep.type ~= "include" then
 			project(dep.name)
 			language(dep.language)

@@ -24,6 +24,8 @@ namespace uie
 
 	void editor_layer::on_imgui_render()
 	{
+		ImGui::DockSpaceOverViewport();
+
 		if (ImGui::Begin("Hello World"))
 		{
 			ImGui::Text("UIEditor");
