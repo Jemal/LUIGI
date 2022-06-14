@@ -3,7 +3,7 @@
 
 namespace uie
 {
-	UIElementPool lui::element_pool_;
+	lui::element_pool lui::element_pool_;
 
 	ui_element* lui::create_element()
 	{
@@ -21,20 +21,22 @@ namespace uie
 		new_element->name_ = "element"s;
 		new_element->name_.append(std::to_string(new_element->id_));
 
-		new_element->type_ = ui_element_type::base;
+		new_element->type_ = ui_element::type::base;
 
 		// move the below into a different function. new_element->setup_default_animation_state()
-		new_element->states_.current_.leftAnchor = true;
-		new_element->states_.current_.topAnchor = true;
-		new_element->states_.current_.rightAnchor = true;
-		new_element->states_.current_.bottomAnchor = true;
+		new_element->states_.current.position.x.anchors[0] = 1.0f;
+		new_element->states_.current.position.y.anchors[0] = 1.0f;
+		new_element->states_.current.position.x.anchors[1] = 1.0f;
+		new_element->states_.current.position.y.anchors[1] = 1.0f;
 
-		new_element->states_.current_.red = 1.0f;
-		new_element->states_.current_.green = 1.0f;
-		new_element->states_.current_.blue = 1.0f;
-		new_element->states_.current_.alpha = 1.0f;
+		new_element->states_.current.red = 1.0f;
+		new_element->states_.current.green = 1.0f;
+		new_element->states_.current.blue = 1.0f;
+		new_element->states_.current.alpha = 1.0f;
 
-		new_element->states_.current_.flags |= AS_BOTTOM_PX | AS_BOTTOM_PT | AS_RIGHT_PX | AS_RIGHT_PT | AS_TOP_PX | AS_TOP_PT | AS_ALPHA | AS_BLUE | AS_GREEN | AS_RED | AS_LEFT_PT | AS_LEFT_PX;
+		// sets all flags
+		//new_element->states_.current_.flags |= all;
+		new_element->states_.current_.flags_ |= ui_element::all;
 
 		new_element->visible_ = true;
 

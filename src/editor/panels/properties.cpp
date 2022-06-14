@@ -15,24 +15,24 @@ namespace uie
 
 	bool properties::show_color_sets_ = true;
 
-	UIAnchorPair anchor_pair[ANCHOR_COUNT] =
+	std::vector<std::string, int> anchor_pair =
 	{
-		{ "None", ANCHOR_NONE },
-		{ "All", ANCHOR_ALL },
-		{ "Left", ANCHOR_LEFT },
-		{ "Top", ANCHOR_TOP },
-		{ "Right", ANCHOR_RIGHT },
-		{ "Bottom", ANCHOR_BOTTOM },
-		{ "Left-Right", ANCHOR_LEFT_RIGHT },
-		{ "Top-Left", ANCHOR_TOP_LEFT },
-		{ "Top-Right", ANCHOR_TOP_RIGHT },
-		{ "Top-Left-Right", ANCHOR_TOP_LEFT_RIGHT },
-		{ "Top-Bottom", ANCHOR_TOP_BOTTOM },
-		{ "Top-Bottom-Left", ANCHOR_TOP_BOTTOM_LEFT },
-		{ "Top-Bottom-Right", ANCHOR_TOP_BOTTOM_RIGHT },
-		{ "Bottom-Left", ANCHOR_BOTTOM_LEFT },
-		{ "Bottom-Right", ANCHOR_BOTTOM_RIGHT },
-		{ "Bottom-Left-Right", ANCHOR_BOTTOM_LEFT_RIGHT },
+		{ "None", ui_element::animation_state::anchor_type::none },
+		{ "All", ui_element::animation_state::anchor_type::all },
+		{ "Left", ui_element::animation_state::anchor_type::left },
+		{ "Top", ui_element::animation_state::anchor_type::top },
+		{ "Right", ui_element::animation_state::anchor_type::right },
+		{ "Bottom", ui_element::animation_state::anchor_type::bottom },
+		{ "Left-Right", ui_element::animation_state::anchor_type::left_right },
+		{ "Top-Left", ui_element::animation_state::anchor_type::top_left },
+		{ "Top-Right", ui_element::animation_state::anchor_type::top_right },
+		{ "Top-Left-Right", ui_element::animation_state::anchor_type::top_left_right },
+		{ "Top-Bottom", ui_element::animation_state::anchor_type::top_bottom },
+		{ "Top-Bottom-Left", ui_element::animation_state::anchor_type::top_bottom_left },
+		{ "Top-Bottom-Right", ui_element::animation_state::anchor_type::top_bottom_right },
+		{ "Bottom-Left", ui_element::animation_state::anchor_type::bottom_left },
+		{ "Bottom-Right", ui_element::animation_state::anchor_type::bottom_right },
+		{ "Bottom-Left-Right", ui_element::animation_state::anchor_type::bottom_left_right }
 	};
 
 	properties::properties()
@@ -156,16 +156,14 @@ namespace uie
 	{
 		if (combo_property("Anchors:", selected_element_->anchors_to_string(selected_element_->anchors_to_int())))
 		{
-			for (auto i = 0; i < UIAnchorType::ANCHOR_COUNT; i++)
+			for (auto& kv : anchor_pair)
 			{
-				auto anchor = anchor_pair[i];
-
-				if (ImGui::Selectable(anchor.name))
+				if (ImGui::Selectable(kv.))
 				{
-					selected_element_->states_.current_.leftAnchor = (anchor.value & UIAnchorType::ANCHOR_LEFT) != 0;
-					selected_element_->states_.current_.topAnchor = (anchor.value & UIAnchorType::ANCHOR_TOP) != 0;
-					selected_element_->states_.current_.rightAnchor = (anchor.value & UIAnchorType::ANCHOR_RIGHT) != 0;
-					selected_element_->states_.current_.bottomAnchor = (anchor.value & UIAnchorType::ANCHOR_BOTTOM) != 0;
+					selected_element_->states_.current_.position.x.anchors[0] = (kv.second & ui_element::anchor_type::left) != 0;
+					selected_element_->states_.current_.position.y.anchors[0] = (kv.second & ui_element::anchor_type::top) != 0;
+					selected_element_->states_.current_.position.x.anchors[1] = (kv.second & ui_element::anchor_type::right) != 0;
+					selected_element_->states_.current_.position.y.anchors[1] = (kv.second & ui_element::anchor_type::bottom) != 0;
 
 					selected_element_->invalidate_layout();
 				}
@@ -174,22 +172,22 @@ namespace uie
 			ImGui::EndCombo();
 		}
 
-		if (input_property("Left:", ImGuiDataType_::ImGuiDataType_Float, &selected_element_->states_.current_.leftPx, 1.0f, input_fast_step_))
+		if (input_property("Left:", ImGuiDataType_::ImGuiDataType_Float, &selected_element_->states_.current_.position.x.offsets[0], 1.0f, input_fast_step_))
 		{
 			selected_element_->invalidate_layout();
 		}
 
-		if (input_property("Right:", ImGuiDataType_::ImGuiDataType_Float, &selected_element_->states_.current_.rightPx, 1.0f, input_fast_step_))
+		if (input_property("Right:", ImGuiDataType_::ImGuiDataType_Float, &selected_element_->states_.current_.position.x.offsets[1], 1.0f, input_fast_step_))
 		{
 			selected_element_->invalidate_layout();
 		}
 
-		if (input_property("Top:", ImGuiDataType_::ImGuiDataType_Float, &selected_element_->states_.current_.topPx, 1.0f, input_fast_step_))
+		if (input_property("Top:", ImGuiDataType_::ImGuiDataType_Float, &selected_element_->states_.current_.position.y.offsets[0], 1.0f, input_fast_step_))
 		{
 			selected_element_->invalidate_layout();
 		}
 
-		if (input_property("Bottom:", ImGuiDataType_::ImGuiDataType_Float, &selected_element_->states_.current_.bottomPx, 1.0f, input_fast_step_))
+		if (input_property("Bottom:", ImGuiDataType_::ImGuiDataType_Float, &selected_element_->states_.current_.position.y.offsets[1], 1.0f, input_fast_step_))
 		{
 			selected_element_->invalidate_layout();
 		}
@@ -211,31 +209,31 @@ namespace uie
 			selected_element_->invalidate_layout();
 		}
 
-		if (selected_element_->type_ == ui_element_type::image)
+		if (selected_element_->type_ == ui_element::type::image)
 		{
 			draw_image_properties();
 		}
-		else if (selected_element_->type_ == ui_element_type::text)
+		else if (selected_element_->type_ == ui_element::type::text)
 		{
 			draw_text_properties();
 		}
 
 		if (input_property("Rotation:", ImGuiDataType_::ImGuiDataType_Float, &selected_element_->states_.current_.rotation, 1.0f, input_fast_step_))
 		{
-			//lui::element::invalidate_layout(element_);
+			selected_element_->invalidate_layout();
 		}
 
-		auto uses_stencil = (selected_element_->states_.current_.flags & AS_STENCIL) != 0;
+		auto uses_stencil = (selected_element_->states_.current_.flags & stencil) != 0;
 
 		if (bool_property("Stencil", &uses_stencil))
 		{
 			if (uses_stencil)
 			{
-				selected_element_->states_.current_.flags |= AS_STENCIL;
+				selected_element_->states_.current_.flags |= stencil;
 			}
 			else
 			{
-				selected_element_->states_.current_.flags &= ~AS_STENCIL;
+				selected_element_->states_.current_.flags &= ~stencil;
 			}
 
 			selected_element_->invalidate_layout();

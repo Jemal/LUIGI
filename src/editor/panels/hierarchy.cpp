@@ -67,7 +67,7 @@ namespace uie
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
-		if (element->first_child_ != nullptr && element->type_ != ui_element_type::widget)
+		if (element->first_child_ != nullptr && element->type_ != ui_element::type::widget)
 		{
 			auto node_flags = ImGuiTreeNodeFlags_None | ImGuiTreeNodeFlags_SpanFullWidth;
 			if (element == properties::selected_element_)
@@ -162,7 +162,7 @@ namespace uie
 		if (ImGui::Button("Create Image"))
 		{
 			auto child = lui::create_element();
-			child->type_ = ui_element_type::image;
+			child->type_ = ui_element::type::image;
 			child->setup();
 
 			if (properties::selected_element_)

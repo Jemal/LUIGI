@@ -26,65 +26,26 @@ namespace uie
 		}
 	}
 
-	void ui_element::calculate_global_rectangle(UIAnimationState* animation_state)
+	void ui_element::calculate_global_rectangle(animation_state* animation_state)
 	{
-		if (this->parent_)
+		auto* parent = this->parent_;
+		if (parent)
 		{
-			if (animation_state->leftAnchor)
-			{
-				animation_state->leftPct = 0;
+			auto left_anchor = animation_state->position.x.anchors[0];
+			auto right_anchor = animation_state->position.x.anchors[1];
+			auto relative_left = (1.0f - left_anchor) * parent->states_.current_.position.x.global[0];
+			auto relative_right = (1.0f - right_anchor) * parent->states_.current_.position.x.global[1];
 
-				if (animation_state->rightAnchor)
-				{
-					animation_state->rightPct = 1.0f;
-				}
-				else
-				{
-					animation_state->rightPct = 0.0f;
-				}
-			}
-			else if (animation_state->rightAnchor)
-			{
-				animation_state->leftPct = 1.0f;
-				animation_state->rightPct = 1.0f;
-			}
-			else
-			{
-				animation_state->leftPct = 0.5f;
-				animation_state->rightPct = 0.5f;
-			}
+			animation_state->position.x.global[0] = (relative_left + (left_anchor * parent->states_.current_.position.x.global[1])) + animation_state->position.x.offsets[0];
+			animation_state->position.x.global[1] = (relative_right + (right_anchor * parent->states_.current_.position.x.global[0])) + animation_state->position.x.offsets[1];
 
-			if (animation_state->topAnchor)
-			{
-				animation_state->topPct = 0;
+			auto top_anchor = animation_state->position.y.anchors[0];
+			auto bottom_anchor = animation_state->position.y.anchors[1];
+			auto relative_top = parent->states_.current_.position.y.global[0] * (1.0f - top_anchor);
+			auto relative_bottom = parent->states_.current_.position.y.global[1] * (1.0f - bottom_anchor);
 
-				if (animation_state->bottomAnchor)
-				{
-					animation_state->bottomPct = 1.0f;
-				}
-				else
-				{
-					animation_state->bottomPct = 0;
-				}
-			}
-			else if (animation_state->bottomAnchor)
-			{
-				animation_state->topPct = 1.0f;
-				animation_state->bottomPct = 1.0f;
-			}
-			else
-			{
-				animation_state->topPct = 0.5f;
-				animation_state->bottomPct = 0.5f;
-			}
-
-			auto parent_width = this->parent_->states_.current_.globalRight - this->parent_->states_.current_.globalLeft;
-			animation_state->globalLeft = (this->parent_->states_.current_.globalLeft + (parent_width * animation_state->leftPct)) + animation_state->leftPx;
-			animation_state->globalRight = (this->parent_->states_.current_.globalLeft + (parent_width * animation_state->rightPct)) + animation_state->rightPx;
-
-			auto parent_height = this->parent_->states_.current_.globalBottom - this->parent_->states_.current_.globalTop;
-			animation_state->globalTop = (this->parent_->states_.current_.globalTop + (parent_height * animation_state->topPct)) + animation_state->topPx;
-			animation_state->globalBottom = (this->parent_->states_.current_.globalTop + (parent_height * animation_state->bottomPct)) + animation_state->bottomPx;
+			animation_state->position.y.global[0] = (relative_top + (top_anchor * parent->states_.current_.position.y.global[1])) + animation_state->position.y.offsets[0];
+			animation_state->position.y.global[1] = (relative_bottom + (bottom_anchor * parent->states_.current_.position.y.global[0])) + animation_state->position.y.offsets[1];
 		}
 	}
 
@@ -94,25 +55,25 @@ namespace uie
 		{
 			auto canvas_size = canvas::get_size();
 
-			this->left_ = root->states_.current_.globalLeft = 0.0f;
-			this->top_ = root->states_.current_.globalTop = 0.0f;
-			this->right_ = root->states_.current_.globalRight = canvas_size.x;
-			this->bottom_ = root->states_.current_.globalBottom = canvas_size.y;
+			this->left_ = root->states_.current_.position.x.global[0] = 0.0f;
+			this->top_ = root->states_.current_.position.y.global[0] = 0.0f;
+			this->right_ = root->states_.current_.position.x.global[1] = canvas_size.x;
+			this->bottom_ = root->states_.current_.position.y.global[1] = canvas_size.y;
 		}
 		else
 		{
-			this->left_ = root->states_.current_.leftPx + this->states_.current_.globalLeft;
-			this->top_ = root->states_.current_.topPx + this->states_.current_.globalTop;
-			this->right_ = root->states_.current_.leftPx + this->states_.current_.globalRight;
-			this->bottom_ = root->states_.current_.topPx + this->states_.current_.globalBottom;
+			this->left_ = root->states_.current_.position.x.offsets[0] + this->states_.current_.position.x.global[0];
+			this->top_ = root->states_.current_.position.y.offsets[0] + this->states_.current_.position.y.global[0];
+			this->right_ = root->states_.current_.position.x.offsets[0] + this->states_.current_.position.x.global[1];
+			this->bottom_ = root->states_.current_.position.y.offsets[0] + this->states_.current_.position.y.global[1];
 		}
 	}
 
 	bool ui_element::update_layout(ui_element* root, int delta_system_time)
 	{
-		if (this->parent_ && (this->parent_->states_.current_.flags & AS_LAYOUT_CACHED) == 0)
+		if (this->parent_ && (this->parent_->states_.current_.flags_ & animation_state::layout_cached) == 0)
 		{
-			this->states_.current_.flags &= -3;
+			this->invalidate_layout();
 		}
 
 		if (this->states_.prev_ && this->states_.next_)
@@ -126,7 +87,7 @@ namespace uie
 		}
 		else
 		{
-			if ((this->states_.current_.flags & AS_LAYOUT_CACHED) == 0)
+			if ((this->states_.current_.flags_ & layout_cached) == 0)
 			{
 				this->calculate_global_rectangle(&this->states_.current_);
 				this->set_dimensions(root);
@@ -138,7 +99,7 @@ namespace uie
 
 	void ui_element::default_layout(ui_element* root, int delta_time)
 	{
-		auto was_cached = (this->states_.current_.flags & AS_LAYOUT_CACHED) != 0;
+		auto was_cached = (this->states_.current_.flags & layout_cached) != 0;
 		auto cache_layout = this->update_layout(root, delta_time);
 
 		if (this->states_.current_.alpha > 0.000099999997f)
@@ -146,13 +107,13 @@ namespace uie
 			layout(this->first_child_, root, delta_time);
 		}
 
-		if (!was_cached || (this->states_.current_.flags & AS_LAYOUT_CACHED) != 0)
+		if (!was_cached || (this->states_.current_.flags & layout_cached) != 0)
 		{
 			auto flags = 0;
 
 			if (cache_layout)
 			{
-				flags = this->states_.current_.flags | AS_LAYOUT_CACHED;
+				flags = this->states_.current_.flags | layout_cached;
 			}
 			else
 			{
@@ -178,7 +139,7 @@ namespace uie
 
 	void ui_element::invalidate_layout()
 	{
-		this->states_.current_.flags &= ~AS_LAYOUT_CACHED;
+		this->states_.current_.flags &= ~layout_cached;
 	}
 
 	void ui_element::setup()
@@ -190,24 +151,24 @@ namespace uie
 	{
 		auto value = 0;
 
-		if (this->states_.current_.leftAnchor)
+		if (this->states_.current_.position.x.anchors[0])
 		{
-			value += 1;
+			value += anchor_type::left;
 		}
 
-		if (this->states_.current_.topAnchor)
+		if (this->states_.current_.position.y.anchors[0])
 		{
-			value += 2;
+			value += anchor_type::top;
 		}
 
-		if (this->states_.current_.rightAnchor)
+		if (this->states_.current_.position.x.anchors[1])
 		{
-			value += 4;
+			value += anchor_type::right;
 		}
 
-		if (this->states_.current_.bottomAnchor)
+		if (this->states_.current_.position.y.anchors[1])
 		{
-			value += 8;
+			value += anchor_type::bottom;
 		}
 
 		return value;
@@ -217,41 +178,41 @@ namespace uie
 	{
 		switch (anchor_value)
 		{
-		case UIAnchorType::ANCHOR_NONE:
+		case animation_state::anchor_type::none:
 			return "None";
-		case UIAnchorType::ANCHOR_ALL:
+		case animation_state::anchor_type::all:
 			return "All";
-		case UIAnchorType::ANCHOR_TOP:
+		case animation_state::anchor_type::top:
 			return "Top";
-		case UIAnchorType::ANCHOR_TOP_LEFT:
+		case animation_state::anchor_type::top_left:
 			return "Top-Left";
-		case UIAnchorType::ANCHOR_TOP_RIGHT:
+		case animation_state::anchor_type::top_right:
 			return "Top-Right";
-		case UIAnchorType::ANCHOR_TOP_LEFT_RIGHT:
+		case animation_state::anchor_type::top_left_right:
 			return "Top-Left-Right";
-		case UIAnchorType::ANCHOR_BOTTOM:
+		case animation_state::anchor_type::bottom:
 			return "Bottom";
-		case UIAnchorType::ANCHOR_BOTTOM_LEFT:
+		case animation_state::anchor_type::bottom_left:
 			return "Bottom-Left";
-		case UIAnchorType::ANCHOR_BOTTOM_RIGHT:
+		case animation_state::anchor_type::bottom_right:
 			return "Bottom-Right";
-		case UIAnchorType::ANCHOR_BOTTOM_LEFT_RIGHT:
+		case animation_state::anchor_type::bottom_left_right:
 			return "Bottom-Left-Right";
-		case UIAnchorType::ANCHOR_TOP_BOTTOM:
+		case animation_state::anchor_type::top_bottom:
 			return "Top-Bottom";
-		case UIAnchorType::ANCHOR_TOP_BOTTOM_LEFT:
+		case animation_state::anchor_type::top_bottom_left:
 			return "Top-Bottom-Left";
-		case UIAnchorType::ANCHOR_TOP_BOTTOM_RIGHT:
+		case animation_state::anchor_type::top_bottom_right:
 			return "Top-Bottom-Right";
-		case UIAnchorType::ANCHOR_LEFT:
+		case animation_state::anchor_type::left:
 			return "Left";
-		case UIAnchorType::ANCHOR_RIGHT:
+		case animation_state::anchor_type::right:
 			return "Right";
-		case UIAnchorType::ANCHOR_LEFT_RIGHT:
+		case animation_state::anchor_type::left_right:
 			return "Left-Right";
 		}
 
-		return "Unknown Anchor";
+		return "Invalid Anchor";
 	}
 
 	void ui_element::add_element(ui_element* child)
@@ -333,7 +294,7 @@ namespace uie
 	{
 		if (element)
 		{
-			element->states_.current_.flags |= AS_IN_USE;
+			element->states_.current_.flags |= in_use;
 
 			if (element->layout_callback_)
 			{
@@ -356,7 +317,7 @@ namespace uie
 
 			if (element)
 			{
-				in_use = (element->states_.current_.flags & AS_IN_USE) != 0;
+				in_use = (element->states_.current_.flags & in_use) != 0;
 			}
 
 			if (!in_use)
@@ -378,7 +339,7 @@ namespace uie
 
 			if (current_alpha > 0.000099999997f)
 			{
-				if ((element->states_.current_.flags & AS_STENCIL) != 0)
+				if ((element->states_.current_.flags & stencil) != 0)
 				{
 					//canvas::push_stencil(element->left, element->top, element->right, element->bottom);
 				}
@@ -396,7 +357,7 @@ namespace uie
 					render(element->first_child_, root, current_red, current_green, current_blue, current_alpha);
 				}
 
-				if ((element->states_.current_.flags & AS_STENCIL) != 0)
+				if ((element->states_.current_.flags & stencil) != 0)
 				{
 					//canvas::pop_stencil();
 				}

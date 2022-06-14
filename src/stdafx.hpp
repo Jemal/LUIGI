@@ -65,6 +65,8 @@
 #include <bitset>
 #include <stack>
 
+#define BIT(x) (1 << x)
+
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
 
